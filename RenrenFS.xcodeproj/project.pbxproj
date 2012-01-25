@@ -1,0 +1,295 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0B08E8D614CFE14B00D17068 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B08E8D514CFE14B00D17068 /* Cocoa.framework */; };
+		0B08E8E014CFE14B00D17068 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8DE14CFE14B00D17068 /* InfoPlist.strings */; };
+		0B08E8E214CFE14B00D17068 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8E114CFE14B00D17068 /* main.m */; };
+		0B08E8E614CFE14B00D17068 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8E414CFE14B00D17068 /* Credits.rtf */; };
+		0B08E8E914CFE14B00D17068 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8E814CFE14B00D17068 /* AppDelegate.m */; };
+		0B08E8EC14CFE14B00D17068 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8EA14CFE14B00D17068 /* MainMenu.xib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0B08E8D114CFE14B00D17068 /* RenrenFS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RenrenFS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0B08E8D514CFE14B00D17068 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
+		0B08E8D814CFE14B00D17068 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		0B08E8D914CFE14B00D17068 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
+		0B08E8DA14CFE14B00D17068 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		0B08E8DD14CFE14B00D17068 /* RenrenFS-Info.plist */ = {isa = PBXFileReference; path = "RenrenFS-Info.plist"; sourceTree = "<group>"; };
+		0B08E8DF14CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		0B08E8E114CFE14B00D17068 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0B08E8E314CFE14B00D17068 /* RenrenFS-Prefix.pch */ = {isa = PBXFileReference; path = "RenrenFS-Prefix.pch"; sourceTree = "<group>"; };
+		0B08E8E514CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
+		0B08E8E714CFE14B00D17068 /* AppDelegate.h */ = {isa = PBXFileReference; path = AppDelegate.h; sourceTree = "<group>"; };
+		0B08E8E814CFE14B00D17068 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		0B08E8EB14CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0B08E8CE14CFE14B00D17068 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B08E8D614CFE14B00D17068 /* Cocoa.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B08E8C614CFE14B00D17068 = {
+			isa = PBXGroup;
+			children = (
+				0B08E8DB14CFE14B00D17068 /* RenrenFS */,
+				0B08E8D414CFE14B00D17068 /* Frameworks */,
+				0B08E8D214CFE14B00D17068 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0B08E8D214CFE14B00D17068 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0B08E8D114CFE14B00D17068 /* RenrenFS.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0B08E8D414CFE14B00D17068 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0B08E8D514CFE14B00D17068 /* Cocoa.framework */,
+				0B08E8D714CFE14B00D17068 /* Other Frameworks */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0B08E8D714CFE14B00D17068 /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0B08E8D814CFE14B00D17068 /* AppKit.framework */,
+				0B08E8D914CFE14B00D17068 /* CoreData.framework */,
+				0B08E8DA14CFE14B00D17068 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		0B08E8DB14CFE14B00D17068 /* RenrenFS */ = {
+			isa = PBXGroup;
+			children = (
+				0B08E8E714CFE14B00D17068 /* AppDelegate.h */,
+				0B08E8E814CFE14B00D17068 /* AppDelegate.m */,
+				0B08E8EA14CFE14B00D17068 /* MainMenu.xib */,
+				0B08E8DC14CFE14B00D17068 /* Supporting Files */,
+			);
+			path = RenrenFS;
+			sourceTree = "<group>";
+		};
+		0B08E8DC14CFE14B00D17068 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				0B08E8DD14CFE14B00D17068 /* RenrenFS-Info.plist */,
+				0B08E8DE14CFE14B00D17068 /* InfoPlist.strings */,
+				0B08E8E114CFE14B00D17068 /* main.m */,
+				0B08E8E314CFE14B00D17068 /* RenrenFS-Prefix.pch */,
+				0B08E8E414CFE14B00D17068 /* Credits.rtf */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0B08E8D014CFE14B00D17068 /* RenrenFS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0B08E8EF14CFE14C00D17068 /* Build configuration list for PBXNativeTarget "RenrenFS" */;
+			buildPhases = (
+				0B08E8CD14CFE14B00D17068 /* Sources */,
+				0B08E8CE14CFE14B00D17068 /* Frameworks */,
+				0B08E8CF14CFE14B00D17068 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RenrenFS;
+			productName = RenrenFS;
+			productReference = 0B08E8D114CFE14B00D17068 /* RenrenFS.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0B08E8C814CFE14B00D17068 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0420;
+			};
+			buildConfigurationList = 0B08E8CB14CFE14B00D17068 /* Build configuration list for PBXProject "RenrenFS" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0B08E8C614CFE14B00D17068;
+			productRefGroup = 0B08E8D214CFE14B00D17068 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0B08E8D014CFE14B00D17068 /* RenrenFS */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0B08E8CF14CFE14B00D17068 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B08E8E014CFE14B00D17068 /* InfoPlist.strings in Resources */,
+				0B08E8E614CFE14B00D17068 /* Credits.rtf in Resources */,
+				0B08E8EC14CFE14B00D17068 /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0B08E8CD14CFE14B00D17068 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0B08E8E214CFE14B00D17068 /* main.m in Sources */,
+				0B08E8E914CFE14B00D17068 /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		0B08E8DE14CFE14B00D17068 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0B08E8DF14CFE14B00D17068 /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		0B08E8E414CFE14B00D17068 /* Credits.rtf */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0B08E8E514CFE14B00D17068 /* en */,
+			);
+			name = Credits.rtf;
+			sourceTree = "<group>";
+		};
+		0B08E8EA14CFE14B00D17068 /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0B08E8EB14CFE14B00D17068 /* en */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0B08E8ED14CFE14B00D17068 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0B08E8EE14CFE14B00D17068 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		0B08E8F014CFE14C00D17068 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RenrenFS/RenrenFS-Prefix.pch";
+				INFOPLIST_FILE = "RenrenFS/RenrenFS-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		0B08E8F114CFE14C00D17068 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "RenrenFS/RenrenFS-Prefix.pch";
+				INFOPLIST_FILE = "RenrenFS/RenrenFS-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0B08E8CB14CFE14B00D17068 /* Build configuration list for PBXProject "RenrenFS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B08E8ED14CFE14B00D17068 /* Debug */,
+				0B08E8EE14CFE14B00D17068 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0B08E8EF14CFE14C00D17068 /* Build configuration list for PBXNativeTarget "RenrenFS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0B08E8F014CFE14C00D17068 /* Debug */,
+				0B08E8F114CFE14C00D17068 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0B08E8C814CFE14B00D17068 /* Project object */;
+}
