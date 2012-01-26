@@ -13,6 +13,14 @@
 		0B08E8E614CFE14B00D17068 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8E414CFE14B00D17068 /* Credits.rtf */; };
 		0B08E8E914CFE14B00D17068 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8E814CFE14B00D17068 /* AppDelegate.m */; };
 		0B08E8EC14CFE14B00D17068 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8EA14CFE14B00D17068 /* MainMenu.xib */; };
+		0B08E8F314CFE16D00D17068 /* OSXFUSE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */; };
+		0B08E8FE14CFE25C00D17068 /* RenrenFS.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8FD14CFE25C00D17068 /* RenrenFS.m */; };
+		0B08E90114D01C9C00D17068 /* NSError+POSIX.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E90014D01C9C00D17068 /* NSError+POSIX.m */; };
+		0B08E90314D028C000D17068 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B08E90214D028C000D17068 /* WebKit.framework */; };
+		0B08E90A14D0309E00D17068 /* NSDictionary+QueryBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E90914D0309E00D17068 /* NSDictionary+QueryBuilder.m */; };
+		0B40825A14D0564D009F4B14 /* NSString+MD5.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B40825914D0564D009F4B14 /* NSString+MD5.m */; };
+		0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B4FDF2A14D064BD00E89892 /* SBJson.framework */; };
+		0B57761E14D0EAA400AD595F /* NSString+EscapeQuotes.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B57761D14D0EAA400AD595F /* NSString+EscapeQuotes.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,14 +29,27 @@
 		0B08E8D814CFE14B00D17068 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		0B08E8D914CFE14B00D17068 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		0B08E8DA14CFE14B00D17068 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		0B08E8DD14CFE14B00D17068 /* RenrenFS-Info.plist */ = {isa = PBXFileReference; path = "RenrenFS-Info.plist"; sourceTree = "<group>"; };
+		0B08E8DD14CFE14B00D17068 /* RenrenFS-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "RenrenFS-Info.plist"; sourceTree = "<group>"; };
 		0B08E8DF14CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0B08E8E114CFE14B00D17068 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		0B08E8E314CFE14B00D17068 /* RenrenFS-Prefix.pch */ = {isa = PBXFileReference; path = "RenrenFS-Prefix.pch"; sourceTree = "<group>"; };
+		0B08E8E314CFE14B00D17068 /* RenrenFS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "RenrenFS-Prefix.pch"; sourceTree = "<group>"; };
 		0B08E8E514CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		0B08E8E714CFE14B00D17068 /* AppDelegate.h */ = {isa = PBXFileReference; path = AppDelegate.h; sourceTree = "<group>"; };
+		0B08E8E714CFE14B00D17068 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		0B08E8E814CFE14B00D17068 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		0B08E8EB14CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSXFUSE.framework; path = Library/Frameworks/OSXFUSE.framework; sourceTree = SDKROOT; };
+		0B08E8FC14CFE25C00D17068 /* RenrenFS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenrenFS.h; sourceTree = "<group>"; };
+		0B08E8FD14CFE25C00D17068 /* RenrenFS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenrenFS.m; sourceTree = "<group>"; };
+		0B08E8FF14D01C9C00D17068 /* NSError+POSIX.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+POSIX.h"; sourceTree = "<group>"; };
+		0B08E90014D01C9C00D17068 /* NSError+POSIX.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+POSIX.m"; sourceTree = "<group>"; };
+		0B08E90214D028C000D17068 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		0B08E90814D0309E00D17068 /* NSDictionary+QueryBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+QueryBuilder.h"; sourceTree = "<group>"; };
+		0B08E90914D0309E00D17068 /* NSDictionary+QueryBuilder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+QueryBuilder.m"; sourceTree = "<group>"; };
+		0B40825814D0564D009F4B14 /* NSString+MD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+MD5.h"; sourceTree = "<group>"; };
+		0B40825914D0564D009F4B14 /* NSString+MD5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+MD5.m"; sourceTree = "<group>"; };
+		0B4FDF2A14D064BD00E89892 /* SBJson.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SBJson.framework; path = Library/Frameworks/SBJson.framework; sourceTree = SDKROOT; };
+		0B57761C14D0EAA400AD595F /* NSString+EscapeQuotes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+EscapeQuotes.h"; sourceTree = "<group>"; };
+		0B57761D14D0EAA400AD595F /* NSString+EscapeQuotes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+EscapeQuotes.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +57,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */,
+				0B08E90314D028C000D17068 /* WebKit.framework in Frameworks */,
+				0B08E8F314CFE16D00D17068 /* OSXFUSE.framework in Frameworks */,
 				0B08E8D614CFE14B00D17068 /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -63,6 +87,9 @@
 		0B08E8D414CFE14B00D17068 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0B4FDF2A14D064BD00E89892 /* SBJson.framework */,
+				0B08E90214D028C000D17068 /* WebKit.framework */,
+				0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */,
 				0B08E8D514CFE14B00D17068 /* Cocoa.framework */,
 				0B08E8D714CFE14B00D17068 /* Other Frameworks */,
 			);
@@ -82,6 +109,16 @@
 		0B08E8DB14CFE14B00D17068 /* RenrenFS */ = {
 			isa = PBXGroup;
 			children = (
+				0B08E90814D0309E00D17068 /* NSDictionary+QueryBuilder.h */,
+				0B08E90914D0309E00D17068 /* NSDictionary+QueryBuilder.m */,
+				0B08E8FF14D01C9C00D17068 /* NSError+POSIX.h */,
+				0B08E90014D01C9C00D17068 /* NSError+POSIX.m */,
+				0B08E8FC14CFE25C00D17068 /* RenrenFS.h */,
+				0B08E8FD14CFE25C00D17068 /* RenrenFS.m */,
+				0B57761C14D0EAA400AD595F /* NSString+EscapeQuotes.h */,
+				0B57761D14D0EAA400AD595F /* NSString+EscapeQuotes.m */,
+				0B40825814D0564D009F4B14 /* NSString+MD5.h */,
+				0B40825914D0564D009F4B14 /* NSString+MD5.m */,
 				0B08E8E714CFE14B00D17068 /* AppDelegate.h */,
 				0B08E8E814CFE14B00D17068 /* AppDelegate.m */,
 				0B08E8EA14CFE14B00D17068 /* MainMenu.xib */,
@@ -167,6 +204,11 @@
 			files = (
 				0B08E8E214CFE14B00D17068 /* main.m in Sources */,
 				0B08E8E914CFE14B00D17068 /* AppDelegate.m in Sources */,
+				0B08E8FE14CFE25C00D17068 /* RenrenFS.m in Sources */,
+				0B08E90114D01C9C00D17068 /* NSError+POSIX.m in Sources */,
+				0B08E90A14D0309E00D17068 /* NSDictionary+QueryBuilder.m in Sources */,
+				0B40825A14D0564D009F4B14 /* NSString+MD5.m in Sources */,
+				0B57761E14D0EAA400AD595F /* NSString+EscapeQuotes.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +330,7 @@
 				0B08E8F114CFE14C00D17068 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
