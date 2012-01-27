@@ -14,6 +14,7 @@
 #import "NSString+MD5.h"
 #import "NSDictionary+QueryBuilder.h"
 #import "NSString+EscapeQuotes.h"
+#import "NSURLDownload+Synchronous.h"
 
 NSString * const kAPIKey = @"e66f8c48f1eb40409d10041968abbb6a";
 NSString * const kSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
@@ -34,7 +35,8 @@ static NSString * const ORIGTYPE = @"orig_type";
 - (NSDictionary *)getUserCountInfo:(long)uid;
 - (NSDictionary *)getUserAlbumsInfo:(long)uid;
 - (NSDictionary *)getAlbumInfo:(long)aid ofUser:(long)uid;
-- (NSDictionary *)getPhotos:(long)uid album:(long)aid;
+- (NSDictionary *)getPhotosInAlbum:(long)aid ofUser:(long)uid;
+- (NSString *)getPhoto:(long)pid inAlbum:(long)aid ofUser:(long)uid;
 - (NSDictionary *)parsePath:(NSString *)path;
 
 - (NSString *)getLocalizedFileForUser:(long)uid;
@@ -49,10 +51,14 @@ static NSString * const ORIGTYPE = @"orig_type";
 {
     if (self = [super init]) {
         accessToken_ = accessToken;
-        cacheDir_ = cacheDir;
+        
+        cacheDir_ = [cacheDir stringByStandardizingPath];
+        photosCacheDir_ = [cacheDir_ stringByAppendingPathComponent:@"photos"];
+        
         baseCache_ = [NSMutableDictionary dictionary];
         countCache_ = [NSMutableDictionary dictionary];
         albumsCache_ = [NSMutableDictionary dictionary];
+        photosCache_ = [NSMutableDictionary dictionary];
         
         uid_ = [[[self requestApi:@"users.getLoggedInUser" withParams:nil] 
                  valueForKey:@"uid"] integerValue];
@@ -106,10 +112,11 @@ static NSString * const ORIGTYPE = @"orig_type";
     
     NSURLResponse *response;
     NSError *error;
-    NSData *data = [NSURLConnection sendSynchronousRequest:request 
-                                         returningResponse:&response error:&error];
-    
-    return [data JSONValue];
+    NSData *rawData = [NSURLConnection sendSynchronousRequest:request 
+                                            returningResponse:&response error:&error];
+    id data = [rawData JSONValue];
+    NSLog(@"return: %@", data);
+    return data;
 }
 
 - (NSDictionary *)getUserBaseInfo:(long)uid
@@ -177,9 +184,45 @@ static NSString * const ORIGTYPE = @"orig_type";
             objectForKey:[NSNumber numberWithInteger:aid]];
 }
 
-- (NSDictionary *)getPhotos:(long)uid album:(long)aid
+- (NSDictionary *)getPhotosInAlbum:(long)aid ofUser:(long)uid
 {
-    return nil;
+    NSNumber *aidKey = [NSNumber numberWithInteger:aid];
+    NSDictionary *result = [photosCache_ objectForKey:aidKey];
+    if (! result) {
+        NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
+                                [NSNumber numberWithInteger:uid], @"uid",
+                                aidKey, @"aid",
+                                @"200", @"count", 
+                                nil];
+        NSArray *data = [self requestApi:@"photos.get" withParams:params];
+        NSMutableDictionary *photos = [NSMutableDictionary dictionary];
+        for (NSDictionary *photo in data) {
+            [photos setObject:photo forKey:[photo valueForKey:@"pid"]];
+        }
+        result = [NSDictionary dictionaryWithDictionary:photos];
+        [photosCache_ setObject:result forKey:aidKey];
+    }
+    return result;
+}
+
+- (NSString *)getPhoto:(long)pid inAlbum:(long)aid ofUser:(long)uid
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *filename = [photosCacheDir_ stringByAppendingPathComponent:
+                          [NSString stringWithFormat:@"%ld/%ld/%ld.jpg",
+                           uid, aid, pid]];
+    if (! [fileManager fileExistsAtPath:filename]) {
+        [fileManager createDirectoryAtPath:[filename stringByDeletingLastPathComponent] 
+               withIntermediateDirectories:YES attributes:nil error:nil];
+        NSURL *url = [NSURL URLWithString:
+                      [[[photosCache_ objectForKey:[NSNumber numberWithInteger:aid]] 
+                        objectForKey:[NSNumber numberWithInteger:pid]] 
+                       valueForKey:@"url_large"]];
+        NSURLRequest *request = [NSURLRequest requestWithURL:url];
+        NSError *error;
+        [NSURLDownload sendSynchoronousRequest:request saveTo:filename error:&error];
+    }
+    return filename;
 }
 
 - (NSDictionary *)parsePath:(NSString *)path
@@ -262,7 +305,7 @@ static NSString * const ORIGTYPE = @"orig_type";
                 long aid = [[result valueForKey:AID] integerValue];
                 long uid = [[result valueForKey:UID] integerValue];
                 NSNumber *pidKey = [NSNumber numberWithInteger:pid];
-                if ([[self getPhotos:uid album:aid] objectForKey:pidKey]) {
+                if ([[self getPhotosInAlbum:aid ofUser:uid] objectForKey:pidKey]) {
                     [result setObject:@"photo" forKey:TYPE];
                     [result setObject:pidKey forKey:PID];
                 }
@@ -344,7 +387,7 @@ static NSString * const ORIGTYPE = @"orig_type";
     else if ([type isEqualToString:@"album"]) {
         long uid = [[pathInfo valueForKey:UID] integerValue];
         long aid = [[pathInfo valueForKey:AID] integerValue];
-        for (NSNumber *photo in [self getPhotos:uid album:aid]) {
+        for (NSNumber *photo in [self getPhotosInAlbum:aid ofUser:uid]) {
             [result addObject:[NSString stringWithFormat:@"photo_%@.jpg", photo]];
         }
     }
@@ -390,6 +433,15 @@ static NSString * const ORIGTYPE = @"orig_type";
         [result setObject:NSFileTypeDirectory forKey:NSFileType];
         [result setObject:[NSNumber numberWithInt:2] forKey:NSFileReferenceCount];
     }
+    else if ([type isEqualToString:@"photo"]) {
+        NSString *filename = [self getPhoto:[[pathInfo valueForKey:PID] integerValue] 
+                                    inAlbum:[[pathInfo valueForKey:AID] integerValue]
+                                     ofUser:uid];
+        NSFileManager *fileManager = [NSFileManager defaultManager];
+        NSDictionary *fileAttr = [fileManager attributesOfItemAtPath:filename error:nil];
+        [result setObject:NSFileTypeRegular forKey:NSFileType];
+        [result setObject:[fileAttr objectForKey:NSFileSize] forKey:NSFileSize];
+    }
     else if ([type isEqualToString:@"localize"]) {
         [result setObject:NSFileTypeDirectory forKey:NSFileType];
         [result setObject:[NSNumber numberWithInteger:2] 
@@ -418,7 +470,7 @@ static NSString * const ORIGTYPE = @"orig_type";
     return result;
 }
 
-- (NSData *)contentsAtPath:(NSString *)path
+- (NSData *)readFileAtPath:(NSString *)path
 {
     NSDictionary *pathInfo = [self parsePath:path];
     NSString *type = [pathInfo valueForKey:TYPE];
@@ -441,6 +493,77 @@ static NSString * const ORIGTYPE = @"orig_type";
         data = nil;
     }
     return [data dataUsingEncoding:NSUTF8StringEncoding];
+}
+
+- (BOOL)openFileAtPath:(NSString *)path mode:(int)mode 
+              userData:(__autoreleasing id *)userData 
+                 error:(NSError *__autoreleasing *)error
+{
+    NSDictionary *pathInfo = [self parsePath:path];
+    NSString *type = [pathInfo valueForKey:TYPE];
+    if ([type isEqualToString:@"photo"]) {
+        NSString *filename = [self getPhoto:[[pathInfo valueForKey:PID] integerValue]
+                                    inAlbum:[[pathInfo valueForKey:AID] integerValue]
+                                     ofUser:[[pathInfo valueForKey:UID] integerValue]];
+        int fd = open([filename UTF8String], mode);
+        if (fd < 0) {
+            if (error) {
+                *error = [NSError errorWithPOSIXCode:errno];
+            }
+            return NO;
+        }
+        else {
+            *userData = [NSNumber numberWithInt:fd];
+            return YES;
+        }
+    }
+    else if ([type isEqualToString:@"strings"]) {
+        *userData = [NSNumber numberWithInt:0];
+        return YES;
+    }
+    else {
+        return NO;
+    }
+}
+
+- (void)releaseFileAtPath:(NSString *)path userData:(id)userData
+{
+    int fd = [userData intValue];
+    if (fd > 0) {
+        close(fd);
+    }
+}
+
+- (int)readFileAtPath:(NSString *)path userData:(id)userData 
+               buffer:(char *)buffer size:(size_t)size 
+               offset:(off_t)offset 
+                error:(NSError *__autoreleasing *)error
+{
+    int fd = [userData intValue];
+    if (fd > 0) {
+        ssize_t ret = pread(fd, buffer, size, offset);
+        if (ret < 0) {
+            if (error) {
+                *error = [NSError errorWithPOSIXCode:errno];
+            }
+        }
+        return (int)ret;
+    }
+    else {
+        NSData *data = [self readFileAtPath:path];
+        ssize_t length = [data length] - offset;
+        length = MIN(length, size);
+        if (length < 0) {
+            if (error) {
+                *error = [NSError errorWithPOSIXCode:EINVAL];
+            }
+            length = -1;
+        }
+        else {
+            [data getBytes:buffer range:NSMakeRange(offset, length)];
+        }
+        return (int)length;
+    }
 }
 
 @end

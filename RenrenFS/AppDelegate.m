@@ -41,8 +41,10 @@ static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_suc
         NSString *fragment = [currentURL fragment];
         NSDictionary *response = [NSDictionary dictionaryWithQueryString:fragment];
         NSString *accessToken = [response valueForKey:@"access_token"];
+        NSLog(@"scope: %@", [response valueForKey:@"scope"]);
         
-        renren_ = [[RenrenFS alloc] initWithAccessToken:accessToken cacheDir:nil];
+        renren_ = [[RenrenFS alloc] initWithAccessToken:accessToken 
+                                               cacheDir:@"/tmp/renrenfs"];
         fs_ = [[GMUserFileSystem alloc] initWithDelegate:renren_ isThreadSafe:NO];
         NSMutableArray *options = [NSMutableArray array];
         [options addObject:@"volname=RenrenFS"];

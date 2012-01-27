@@ -21,6 +21,7 @@
 		0B40825A14D0564D009F4B14 /* NSString+MD5.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B40825914D0564D009F4B14 /* NSString+MD5.m */; };
 		0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B4FDF2A14D064BD00E89892 /* SBJson.framework */; };
 		0B57761E14D0EAA400AD595F /* NSString+EscapeQuotes.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B57761D14D0EAA400AD595F /* NSString+EscapeQuotes.m */; };
+		0B57762814D19E3600AD595F /* NSURLDownload+Synchronous.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B57762714D19E3600AD595F /* NSURLDownload+Synchronous.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,6 +51,8 @@
 		0B4FDF2A14D064BD00E89892 /* SBJson.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SBJson.framework; path = Library/Frameworks/SBJson.framework; sourceTree = SDKROOT; };
 		0B57761C14D0EAA400AD595F /* NSString+EscapeQuotes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+EscapeQuotes.h"; sourceTree = "<group>"; };
 		0B57761D14D0EAA400AD595F /* NSString+EscapeQuotes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+EscapeQuotes.m"; sourceTree = "<group>"; };
+		0B57762614D19E3600AD595F /* NSURLDownload+Synchronous.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURLDownload+Synchronous.h"; path = "../NSURLDownload+Synchronous.h"; sourceTree = "<group>"; };
+		0B57762714D19E3600AD595F /* NSURLDownload+Synchronous.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURLDownload+Synchronous.m"; path = "../NSURLDownload+Synchronous.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +112,8 @@
 		0B08E8DB14CFE14B00D17068 /* RenrenFS */ = {
 			isa = PBXGroup;
 			children = (
+				0B57762614D19E3600AD595F /* NSURLDownload+Synchronous.h */,
+				0B57762714D19E3600AD595F /* NSURLDownload+Synchronous.m */,
 				0B08E90814D0309E00D17068 /* NSDictionary+QueryBuilder.h */,
 				0B08E90914D0309E00D17068 /* NSDictionary+QueryBuilder.m */,
 				0B08E8FF14D01C9C00D17068 /* NSError+POSIX.h */,
@@ -209,6 +214,7 @@
 				0B08E90A14D0309E00D17068 /* NSDictionary+QueryBuilder.m in Sources */,
 				0B40825A14D0564D009F4B14 /* NSString+MD5.m in Sources */,
 				0B57761E14D0EAA400AD595F /* NSString+EscapeQuotes.m in Sources */,
+				0B57762814D19E3600AD595F /* NSURLDownload+Synchronous.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
