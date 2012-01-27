@@ -28,6 +28,22 @@ static NSString * const PID = @"pid";
 static NSString * const LOCALIZED = @"localized";
 static NSString * const ORIGTYPE = @"orig_type";
 
+@interface NSDate (Renren)
+
++ (id)dateWithRenrenString:(NSString *)aString;
+
+@end
+
+@implementation NSDate (Renren)
+
++ (id)dateWithRenrenString:(NSString *)aString
+{
+    return [NSDate dateWithString:
+            [aString stringByAppendingString:@" +0800"]];
+}
+
+@end
+
 @interface RenrenFS ( Private )
 
 - (id)requestApi:(NSString *)method withParams:(NSDictionary *)params;
@@ -432,15 +448,26 @@ static NSString * const ORIGTYPE = @"orig_type";
     else if ([type isEqualToString:@"album"]) {
         [result setObject:NSFileTypeDirectory forKey:NSFileType];
         [result setObject:[NSNumber numberWithInt:2] forKey:NSFileReferenceCount];
+        NSDictionary *album = [self getAlbumInfo:[[pathInfo valueForKey:AID] integerValue]
+                                          ofUser:[[pathInfo valueForKey:UID] integerValue]];
+        [result setObject:[NSDate dateWithRenrenString:[album valueForKey:@"create_time"]] 
+                   forKey:NSFileCreationDate];
+        [result setObject:[NSDate dateWithRenrenString:[album valueForKey:@"update_time"]] 
+                   forKey:NSFileModificationDate];
     }
     else if ([type isEqualToString:@"photo"]) {
-        NSString *filename = [self getPhoto:[[pathInfo valueForKey:PID] integerValue] 
-                                    inAlbum:[[pathInfo valueForKey:AID] integerValue]
-                                     ofUser:uid];
+        long pid = [[pathInfo valueForKey:PID] integerValue];
+        long aid = [[pathInfo valueForKey:AID] integerValue];
+        NSString *filename = [self getPhoto:pid inAlbum:aid ofUser:uid];
         NSFileManager *fileManager = [NSFileManager defaultManager];
         NSDictionary *fileAttr = [fileManager attributesOfItemAtPath:filename error:nil];
         [result setObject:NSFileTypeRegular forKey:NSFileType];
         [result setObject:[fileAttr objectForKey:NSFileSize] forKey:NSFileSize];
+        NSDictionary *photo = [[self getPhotosInAlbum:aid ofUser:uid] 
+                               objectForKey:[pathInfo valueForKey:PID]];
+        NSDate *time = [NSDate dateWithRenrenString:[photo valueForKey:@"time"]];
+        [result setObject:time forKey:NSFileCreationDate];
+        [result setObject:time forKey:NSFileModificationDate];
     }
     else if ([type isEqualToString:@"localize"]) {
         [result setObject:NSFileTypeDirectory forKey:NSFileType];
