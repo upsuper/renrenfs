@@ -21,6 +21,8 @@
 		0B1B566914D252770036857F /* NSString+EscapeQuotes.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B1B566214D252770036857F /* NSString+EscapeQuotes.m */; };
 		0B1B566A14D252770036857F /* NSString+MD5.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B1B566414D252770036857F /* NSString+MD5.m */; };
 		0B1B566B14D252770036857F /* NSURLDownload+Synchronous.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B1B566614D252770036857F /* NSURLDownload+Synchronous.m */; };
+		0B1B568214D264DB0036857F /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568014D264DB0036857F /* LICENSE */; };
+		0B1B568314D264DB0036857F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568114D264DB0036857F /* README.md */; };
 		0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B4FDF2A14D064BD00E89892 /* SBJson.framework */; };
 /* End PBXBuildFile section */
 
@@ -52,6 +54,8 @@
 		0B1B566414D252770036857F /* NSString+MD5.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+MD5.m"; sourceTree = "<group>"; };
 		0B1B566514D252770036857F /* NSURLDownload+Synchronous.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURLDownload+Synchronous.h"; sourceTree = "<group>"; };
 		0B1B566614D252770036857F /* NSURLDownload+Synchronous.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURLDownload+Synchronous.m"; sourceTree = "<group>"; };
+		0B1B568014D264DB0036857F /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
+		0B1B568114D264DB0036857F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
 		0B4FDF2A14D064BD00E89892 /* SBJson.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SBJson.framework; path = Library/Frameworks/SBJson.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -73,6 +77,8 @@
 		0B08E8C614CFE14B00D17068 = {
 			isa = PBXGroup;
 			children = (
+				0B1B568014D264DB0036857F /* LICENSE */,
+				0B1B568114D264DB0036857F /* README.md */,
 				0B08E8DB14CFE14B00D17068 /* RenrenFS */,
 				0B1B565C14D252770036857F /* Categories */,
 				0B08E8D414CFE14B00D17068 /* Frameworks */,
@@ -205,6 +211,8 @@
 				0B08E8E014CFE14B00D17068 /* InfoPlist.strings in Resources */,
 				0B08E8E614CFE14B00D17068 /* Credits.rtf in Resources */,
 				0B08E8EC14CFE14B00D17068 /* MainMenu.xib in Resources */,
+				0B1B568214D264DB0036857F /* LICENSE in Resources */,
+				0B1B568314D264DB0036857F /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
