@@ -57,6 +57,7 @@ static NSString * const ORIGTYPE = @"orig_type";
 
 - (NSString *)getLocalizedFileForUser:(long)uid;
 - (NSString *)getLocalizedFileForAlbum:(long)aid ofUser:(long)uid;
+- (NSData *)readFileAtPath:(NSString *)path;
 
 @end
 
@@ -408,7 +409,9 @@ static NSString * const ORIGTYPE = @"orig_type";
         }
     }
     else if ([type isEqualToString:@"localize"]) {
-        [result addObject:@"zh_CN.strings"];
+        NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+        NSString *lang = [[defs objectForKey:@"AppleLanguages"] objectAtIndex:0];
+        [result addObject:[NSString stringWithFormat:@"%@.strings", lang]];
     }
     else {
         result = nil;
@@ -474,24 +477,17 @@ static NSString * const ORIGTYPE = @"orig_type";
         [result setObject:[NSNumber numberWithInteger:2] 
                    forKey:NSFileReferenceCount];
     }
-    else if ([type isEqualToString:@"strings"]) {
-        [result setObject:NSFileTypeRegular forKey:NSFileType];
-        NSString *data;
-        NSString *origType = [pathInfo valueForKey:ORIGTYPE];
-        if ([origType isEqualToString:@"user"]) {
-            data = [self getLocalizedFileForUser:uid];
-        }
-        else if ([origType isEqualToString:@"album"]) {
-            long aid = [[pathInfo valueForKey:AID] integerValue];
-            data = [self getLocalizedFileForAlbum:aid ofUser:uid];
-        }
-        NSUInteger length = [data lengthOfBytesUsingEncoding:NSUTF8StringEncoding];
-        [result setObject:[NSNumber numberWithUnsignedInteger:length] 
-                   forKey:NSFileSize];
-    }
     else {
-        *error = [NSError errorWithPOSIXCode:ENOENT];
-        result = nil;
+        NSData *data = [self readFileAtPath:path];
+        if (data) {
+            [result setObject:NSFileTypeRegular forKey:NSFileType];
+            [result setObject:[NSNumber numberWithUnsignedInteger:[data length]] 
+                       forKey:NSFileSize];
+        }
+        else {
+            *error = [NSError errorWithPOSIXCode:ENOENT];
+            result = nil;
+        }
     }
     
     return result;
@@ -502,24 +498,26 @@ static NSString * const ORIGTYPE = @"orig_type";
     NSDictionary *pathInfo = [self parsePath:path];
     NSString *type = [pathInfo valueForKey:TYPE];
     long uid = [[pathInfo valueForKey:UID] integerValue];
-    NSString *data;
+    NSData *data;
     if ([type isEqualToString:@"strings"]) {
+        NSString *strings;
         NSString *origType = [pathInfo valueForKey:ORIGTYPE];
         if ([origType isEqualToString:@"user"]) {
-            data = [self getLocalizedFileForUser:uid];
+            strings = [self getLocalizedFileForUser:uid];
         }
         else if ([origType isEqualToString:@"album"]) {
             long aid = [[pathInfo valueForKey:AID] integerValue];
-            data = [self getLocalizedFileForAlbum:aid ofUser:uid];
+            strings = [self getLocalizedFileForAlbum:aid ofUser:uid];
         }
         else {
-            data = nil;
+            strings = nil;
         }
+        data = [strings dataUsingEncoding:NSUTF16StringEncoding];
     }
     else {
         data = nil;
     }
-    return [data dataUsingEncoding:NSUTF8StringEncoding];
+    return data;
 }
 
 - (BOOL)openFileAtPath:(NSString *)path mode:(int)mode 
