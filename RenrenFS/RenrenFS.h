@@ -14,6 +14,7 @@ extern NSString * const kSecretKey;
 @interface RenrenFS : NSObject {
     NSString *accessToken_;
     long uid_;
+    NSString *name_;
     NSSet *friends_;
     
     NSMutableDictionary *baseCache_;
@@ -24,6 +25,10 @@ extern NSString * const kSecretKey;
     NSString *cacheDir_;
     NSString *photosCacheDir_;
 }
+
+@property (readonly) long uid;
+@property (readonly) NSString *name;
+
 - (id)initWithAccessToken:(NSString *)accessToken cacheDir:(NSString *)cacheDir;
 
 @end

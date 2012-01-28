@@ -45,10 +45,13 @@ static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_suc
         
         renren_ = [[RenrenFS alloc] initWithAccessToken:accessToken 
                                                cacheDir:@"/tmp/renrenfs"];
+        NSString *volname = [NSString stringWithFormat:@"%@'s RenrenFS", [renren_ name]];
         fs_ = [[GMUserFileSystem alloc] initWithDelegate:renren_ isThreadSafe:NO];
         NSMutableArray *options = [NSMutableArray array];
-        [options addObject:@"volname=RenrenFS"];
-        [fs_ mountAtPath:@"/Volumes/Renren" withOptions:options];
+        [options addObject:[NSString stringWithFormat:@"volname=%@", volname]];
+        [fs_ mountAtPath:
+         [NSString stringWithFormat:@"/Volumes/Renren_%ld", [renren_ uid]] 
+             withOptions:options];
     }
 }
 

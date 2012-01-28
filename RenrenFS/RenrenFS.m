@@ -44,7 +44,7 @@ static NSString * const ORIGTYPE = @"orig_type";
 
 @end
 
-@interface RenrenFS ( Private )
+@interface RenrenFS (Private)
 
 - (id)requestApi:(NSString *)method withParams:(NSDictionary *)params;
 - (NSDictionary *)getUserBaseInfo:(long)uid;
@@ -63,6 +63,9 @@ static NSString * const ORIGTYPE = @"orig_type";
 
 @implementation RenrenFS
 
+@synthesize uid = uid_;
+@synthesize name = name_;
+
 - (id)initWithAccessToken:(NSString *)accessToken 
                  cacheDir:(NSString *)cacheDir
 {
@@ -79,6 +82,7 @@ static NSString * const ORIGTYPE = @"orig_type";
         
         uid_ = [[[self requestApi:@"users.getLoggedInUser" withParams:nil] 
                  valueForKey:@"uid"] integerValue];
+        name_ = [[self getUserBaseInfo:uid_] valueForKey:@"name"];
         NSDictionary *params = [NSDictionary 
                                 dictionaryWithObject:@"2000" forKey:@"count"];
         NSArray *friends = [self requestApi:@"friends.getFriends" withParams:params];
