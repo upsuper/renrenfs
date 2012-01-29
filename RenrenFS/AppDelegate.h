@@ -10,11 +10,13 @@
 #import <WebKit/WebKit.h>
 
 @class GMUserFileSystem;
+@class RRConnection;
 @class RenrenFS;
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
-    GMUserFileSystem *fs_;
-    RenrenFS *renren_;
+    GMUserFileSystem *_fs;
+    RRConnection *_conn;
+    RenrenFS *_rrfs;
 }
 
 @property (assign) IBOutlet NSWindow *window;

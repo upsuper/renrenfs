@@ -24,6 +24,11 @@
 		0B1B568214D264DB0036857F /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568014D264DB0036857F /* LICENSE */; };
 		0B1B568314D264DB0036857F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568114D264DB0036857F /* README.md */; };
 		0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B4FDF2A14D064BD00E89892 /* SBJson.framework */; };
+		0B7754A314D3AAE000ADFDEA /* RRConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B7754A214D3AAE000ADFDEA /* RRConnection.m */; };
+		0B7754AA14D3EE4300ADFDEA /* RRUser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B7754A914D3EE4300ADFDEA /* RRUser.m */; };
+		0BC9E2E814D4DE8A000E2A9C /* RRAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BC9E2E714D4DE8A000E2A9C /* RRAlbum.m */; };
+		0BC9E2EC14D4E36E000E2A9C /* NSDate+Renren.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BC9E2EB14D4E36E000E2A9C /* NSDate+Renren.m */; };
+		0BC9E2EF14D4E843000E2A9C /* RRPhoto.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BC9E2EE14D4E843000E2A9C /* RRPhoto.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -57,6 +62,17 @@
 		0B1B568014D264DB0036857F /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
 		0B1B568114D264DB0036857F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
 		0B4FDF2A14D064BD00E89892 /* SBJson.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SBJson.framework; path = Library/Frameworks/SBJson.framework; sourceTree = SDKROOT; };
+		0B77549D14D3AA5900ADFDEA /* Renren.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renren.h; path = ../Renren/Renren.h; sourceTree = "<group>"; };
+		0B7754A114D3AAE000ADFDEA /* RRConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RRConnection.h; path = Renren/RRConnection.h; sourceTree = SOURCE_ROOT; };
+		0B7754A214D3AAE000ADFDEA /* RRConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RRConnection.m; path = Renren/RRConnection.m; sourceTree = SOURCE_ROOT; };
+		0B7754A814D3EE4300ADFDEA /* RRUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RRUser.h; path = Renren/RRUser.h; sourceTree = SOURCE_ROOT; };
+		0B7754A914D3EE4300ADFDEA /* RRUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RRUser.m; path = Renren/RRUser.m; sourceTree = SOURCE_ROOT; };
+		0BC9E2E614D4DE8A000E2A9C /* RRAlbum.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RRAlbum.h; path = Renren/RRAlbum.h; sourceTree = SOURCE_ROOT; };
+		0BC9E2E714D4DE8A000E2A9C /* RRAlbum.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RRAlbum.m; path = Renren/RRAlbum.m; sourceTree = SOURCE_ROOT; };
+		0BC9E2EA14D4E36E000E2A9C /* NSDate+Renren.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDate+Renren.h"; path = "Renren/NSDate+Renren.h"; sourceTree = SOURCE_ROOT; };
+		0BC9E2EB14D4E36E000E2A9C /* NSDate+Renren.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSDate+Renren.m"; path = "Renren/NSDate+Renren.m"; sourceTree = SOURCE_ROOT; };
+		0BC9E2ED14D4E843000E2A9C /* RRPhoto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RRPhoto.h; path = Renren/RRPhoto.h; sourceTree = SOURCE_ROOT; };
+		0BC9E2EE14D4E843000E2A9C /* RRPhoto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RRPhoto.m; path = Renren/RRPhoto.m; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +96,7 @@
 				0B1B568014D264DB0036857F /* LICENSE */,
 				0B1B568114D264DB0036857F /* README.md */,
 				0B08E8DB14CFE14B00D17068 /* RenrenFS */,
+				0B77549814D3A8EF00ADFDEA /* Renren */,
 				0B1B565C14D252770036857F /* Categories */,
 				0B08E8D414CFE14B00D17068 /* Frameworks */,
 				0B08E8D214CFE14B00D17068 /* Products */,
@@ -158,6 +175,25 @@
 			path = Categories;
 			sourceTree = "<group>";
 		};
+		0B77549814D3A8EF00ADFDEA /* Renren */ = {
+			isa = PBXGroup;
+			children = (
+				0B77549D14D3AA5900ADFDEA /* Renren.h */,
+				0B7754A114D3AAE000ADFDEA /* RRConnection.h */,
+				0B7754A214D3AAE000ADFDEA /* RRConnection.m */,
+				0B7754A814D3EE4300ADFDEA /* RRUser.h */,
+				0B7754A914D3EE4300ADFDEA /* RRUser.m */,
+				0BC9E2E614D4DE8A000E2A9C /* RRAlbum.h */,
+				0BC9E2E714D4DE8A000E2A9C /* RRAlbum.m */,
+				0BC9E2ED14D4E843000E2A9C /* RRPhoto.h */,
+				0BC9E2EE14D4E843000E2A9C /* RRPhoto.m */,
+				0BC9E2EA14D4E36E000E2A9C /* NSDate+Renren.h */,
+				0BC9E2EB14D4E36E000E2A9C /* NSDate+Renren.m */,
+			);
+			name = Renren;
+			path = RenrenFS;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -231,6 +267,11 @@
 				0B1B566914D252770036857F /* NSString+EscapeQuotes.m in Sources */,
 				0B1B566A14D252770036857F /* NSString+MD5.m in Sources */,
 				0B1B566B14D252770036857F /* NSURLDownload+Synchronous.m in Sources */,
+				0B7754A314D3AAE000ADFDEA /* RRConnection.m in Sources */,
+				0B7754AA14D3EE4300ADFDEA /* RRUser.m in Sources */,
+				0BC9E2E814D4DE8A000E2A9C /* RRAlbum.m in Sources */,
+				0BC9E2EC14D4E36E000E2A9C /* NSDate+Renren.m in Sources */,
+				0BC9E2EF14D4E843000E2A9C /* RRPhoto.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

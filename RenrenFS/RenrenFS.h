@@ -8,27 +8,14 @@
 
 #import <Foundation/Foundation.h>
 
-extern NSString * const kAPIKey;
-extern NSString * const kSecretKey;
+@class RRConnection;
 
 @interface RenrenFS : NSObject {
-    NSString *accessToken_;
-    long uid_;
-    NSString *name_;
-    NSSet *friends_;
-    
-    NSMutableDictionary *baseCache_;
-    NSMutableDictionary *countCache_;
-    NSMutableDictionary *albumsCache_;
-    NSMutableDictionary *photosCache_;
-    
-    NSString *cacheDir_;
-    NSString *photosCacheDir_;
+    RRConnection *_conn;    
+    NSString *_cacheDir;
+    NSString *_photosCacheDir;
 }
 
-@property (readonly) long uid;
-@property (readonly) NSString *name;
-
-- (id)initWithAccessToken:(NSString *)accessToken cacheDir:(NSString *)cacheDir;
+- (id)initWithConnection:(RRConnection *)conn cacheDir:(NSString *)cacheDir;
 
 @end

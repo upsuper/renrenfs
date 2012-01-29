@@ -7,12 +7,17 @@
 //
 
 #import "AppDelegate.h"
+#import "Renren.h"
 #import "RenrenFS.h"
 #import <OSXFUSE/OSXFUSE.h>
 #import <WebKit/WebKit.h>
 #import "NSDictionary+QueryBuilder.h"
 
-static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_success.html";
+static NSString * const RRCallbackURL = 
+    @"http://graph.renren.com/oauth/login_success.html";
+
+NSString * const RRFSApiKey = @"e66f8c48f1eb40409d10041968abbb6a";
+NSString * const RRFSSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
 
 @implementation AppDelegate
 
@@ -36,21 +41,24 @@ static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_suc
 - (void)webView:(WebView *)sender didFinishLoadForFrame:(WebFrame *)frame
 {
     NSURL *currentURL = [[[frame dataSource] request] URL];
-    NSString *callbackPath = [[NSURL URLWithString:kCallbackURI] path];
+    NSString *callbackPath = [[NSURL URLWithString:RRCallbackURL] path];
     if ([[currentURL path] isEqualToString:callbackPath]) {
         NSString *fragment = [currentURL fragment];
         NSDictionary *response = [NSDictionary dictionaryWithQueryString:fragment];
         NSString *accessToken = [response valueForKey:@"access_token"];
         NSLog(@"scope: %@", [response valueForKey:@"scope"]);
         
-        renren_ = [[RenrenFS alloc] initWithAccessToken:accessToken 
-                                               cacheDir:@"/tmp/renrenfs"];
-        NSString *volname = [NSString stringWithFormat:@"%@'s RenrenFS", [renren_ name]];
-        fs_ = [[GMUserFileSystem alloc] initWithDelegate:renren_ isThreadSafe:NO];
+        _conn = [[RRConnection alloc] initWithAccessToken:accessToken 
+                                                   secret:RRFSSecretKey];
+        _rrfs = [[RenrenFS alloc] initWithConnection:_conn 
+                                            cacheDir:@"/tmp/renrenfs"];
+        NSString *volname = [NSString stringWithFormat:@"%@'s RenrenFS", 
+                             [[_conn user] name]];
+        _fs = [[GMUserFileSystem alloc] initWithDelegate:_rrfs isThreadSafe:NO];
         NSMutableArray *options = [NSMutableArray array];
         [options addObject:[NSString stringWithFormat:@"volname=%@", volname]];
-        [fs_ mountAtPath:
-         [NSString stringWithFormat:@"/Volumes/Renren_%ld", [renren_ uid]] 
+        [_fs mountAtPath:
+         [NSString stringWithFormat:@"/Volumes/Renren_%@", [[_conn user] uid]] 
              withOptions:options];
     }
 }
@@ -65,8 +73,8 @@ static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_suc
                    name:kGMUserFileSystemDidUnmount object:nil];
     
     NSDictionary *authorizeQuery = [NSDictionary dictionaryWithObjectsAndKeys:
-                                    kAPIKey, @"client_id",
-                                    kCallbackURI, @"redirect_uri",
+                                    RRFSApiKey, @"client_id",
+                                    RRCallbackURL, @"redirect_uri",
                                     @"token", @"response_type",
                                     @"read_user_blog read_user_album read_user_photo", @"scope", 
                                     nil];
@@ -78,7 +86,7 @@ static NSString * const kCallbackURI = @"http://graph.renren.com/oauth/login_suc
 
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender 
 {
-    [fs_ unmount];
+    [_fs unmount];
     return NSTerminateNow;
 }
 

@@ -15,411 +15,335 @@
 #import "NSDictionary+QueryBuilder.h"
 #import "NSString+EscapeQuotes.h"
 #import "NSURLDownload+Synchronous.h"
+#import "Renren.h"
 
-NSString * const kAPIKey = @"e66f8c48f1eb40409d10041968abbb6a";
-NSString * const kSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
+typedef enum {
+    RRFSPathTypeUnknown = 0,
+    RRFSPathTypeUser,
+    RRFSPathTypeFriends,
+    RRFSPathTypePhotos,
+    RRFSPathTypeAlbum,
+    RRFSPathTypePhoto,
+    RRFSPathTypeLocalize,
+    RRFSPathTypeStrings
+} RRFSPathType;
 
-static NSString * const kRenrenApi = @"http://api.renren.com/restserver.do";
+@interface RRFSPathParsingResult : NSObject {
+@public
+    RRFSPathType _type;
+    id _object;
+    BOOL _isLocalized;
+    RRFSPathType _origType;
+}
 
-static NSString * const TYPE = @"type";
-static NSString * const UID = @"uid";
-static NSString * const AID = @"aid";
-static NSString * const PID = @"pid";
-static NSString * const LOCALIZED = @"localized";
-static NSString * const ORIGTYPE = @"orig_type";
-
-@interface NSDate (Renren)
-
-+ (id)dateWithRenrenString:(NSString *)aString;
+@property RRFSPathType type;
+@property (strong) id object;
+@property BOOL isLocalized;
+@property RRFSPathType origType;
 
 @end
 
-@implementation NSDate (Renren)
+@implementation RRFSPathParsingResult
 
-+ (id)dateWithRenrenString:(NSString *)aString
+@synthesize type = _type;
+@synthesize object = _object;
+@synthesize isLocalized = _isLocalized;
+@synthesize origType = _origType;
+
+@end
+
+static NSString * const RRFSPathNameFriends = @"Friends";
+static NSString * const RRFSPathNamePhotos = @"Photos";
+static NSString * const RRFSPathNameUser = @"user_%@.localized";
+static NSString * const RRFSPathNameAlbum = @"album_%@.localized";
+static NSString * const RRFSPathNamePhoto = @"photo_%@.jpg";
+static NSString * const RRFSPathNameStrings = @"%@.strings";
+static NSString * const RRFSPathNameLocalized = @".localized";
+static NSString * const RRFSPathPrefixUser = @"user_";
+static NSString * const RRFSPathPrefixAlbum = @"album_";
+static NSString * const RRFSPathPrefixPhoto = @"photo_";
+static NSString * const RRFSPathSuffixPhoto = @".jpg";
+static NSString * const RRFSPathSuffixStrings = @".strings";
+static NSString * const RRFSPathSuffixLocalized = @".localized";
+
+static NSString *RRFSStringsName;
+
+@interface RRPhoto (Path)
+
+- (NSString *)pathWithRoot:(NSString *)root;
+
+@end
+
+@implementation RRPhoto (Path)
+
+- (NSString *)pathWithRoot:(NSString *)root
 {
-    return [NSDate dateWithString:
-            [aString stringByAppendingString:@" +0800"]];
+    return [root stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"%@/%@/%@.jpg", _uid, _aid, _pid]];
+}
+
+@end
+
+@interface NSString (NumberValueWithPrefix)
+
+- (NSNumber *)numberByRemovingPrefix:(NSString *)prefix;
+
+@end
+
+@implementation NSString (NumberValueWithPrefix)
+
+- (NSNumber *)numberByRemovingPrefix:(NSString *)prefix
+{
+    long number = [[self substringFromIndex:[prefix length]] integerValue];
+    return [NSNumber numberWithInteger:number];
 }
 
 @end
 
 @interface RenrenFS (Private)
 
-- (id)requestApi:(NSString *)method withParams:(NSDictionary *)params;
-- (NSDictionary *)getUserBaseInfo:(long)uid;
-- (NSDictionary *)getUserCountInfo:(long)uid;
-- (NSDictionary *)getUserAlbumsInfo:(long)uid;
-- (NSDictionary *)getAlbumInfo:(long)aid ofUser:(long)uid;
-- (NSDictionary *)getPhotosInAlbum:(long)aid ofUser:(long)uid;
-- (NSString *)getPhoto:(long)pid inAlbum:(long)aid ofUser:(long)uid;
-- (NSDictionary *)parsePath:(NSString *)path;
+- (RRFSPathParsingResult *)parsePath:(NSString *)path;
 
-- (NSString *)getLocalizedFileForUser:(long)uid;
-- (NSString *)getLocalizedFileForAlbum:(long)aid ofUser:(long)uid;
+- (NSString *)pathOfPhoto:(RRPhoto *)photo;
+- (BOOL)downloadPhoto:(RRPhoto *)photo error:(NSError **)error;
+- (NSString *)localizedFileForUser:(RRUser *)user;
+- (NSString *)localizedFileForAlbum:(RRAlbum *)album;
 - (NSData *)readFileAtPath:(NSString *)path;
 
 @end
 
 @implementation RenrenFS
 
-@synthesize uid = uid_;
-@synthesize name = name_;
++ (void)initialize
+{
+    NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+    NSString *lang = [[defs objectForKey:@"AppleLanguages"] objectAtIndex:0];
+    RRFSStringsName = [NSString stringWithFormat:RRFSPathNameStrings, lang];
+}
 
-- (id)initWithAccessToken:(NSString *)accessToken 
-                 cacheDir:(NSString *)cacheDir
+- (id)initWithConnection:(RRConnection *)conn cacheDir:(NSString *)cacheDir
 {
     if (self = [super init]) {
-        accessToken_ = accessToken;
-        
-        cacheDir_ = [cacheDir stringByStandardizingPath];
-        photosCacheDir_ = [cacheDir_ stringByAppendingPathComponent:@"photos"];
-        
-        baseCache_ = [NSMutableDictionary dictionary];
-        countCache_ = [NSMutableDictionary dictionary];
-        albumsCache_ = [NSMutableDictionary dictionary];
-        photosCache_ = [NSMutableDictionary dictionary];
-        
-        uid_ = [[[self requestApi:@"users.getLoggedInUser" withParams:nil] 
-                 valueForKey:@"uid"] integerValue];
-        name_ = [[self getUserBaseInfo:uid_] valueForKey:@"name"];
-        NSDictionary *params = [NSDictionary 
-                                dictionaryWithObject:@"2000" forKey:@"count"];
-        NSArray *friends = [self requestApi:@"friends.getFriends" withParams:params];
-        NSMutableArray *friendIDs = [NSMutableArray arrayWithCapacity:[friends count]];
-        for (NSDictionary *friend in friends) {
-            NSNumber *uid = [friend valueForKey:@"id"];
-            [friendIDs addObject:uid];
-            NSDictionary *userItem = [NSDictionary dictionaryWithObjectsAndKeys:
-                                      [friend valueForKey:@"name"], @"name",
-                                      [friend valueForKey:@"headurl"], @"head",
-                                      [friend valueForKey:@"sex"], @"sex", 
-                                      nil];
-            [baseCache_ setObject:userItem forKey:uid];
-        }
-        friends_ = [NSSet setWithArray:friendIDs];
+        _conn = conn;
+        _cacheDir = [cacheDir stringByStandardizingPath];
+        _photosCacheDir = [_cacheDir stringByAppendingPathComponent:@"photos"];
     }
     return self;
 }
 
-- (id)requestApi:(NSString *)method withParams:(NSDictionary *)params
+- (NSString *)pathOfPhoto:(RRPhoto *)photo
 {
-    NSLog(@"request api: %@ %@", method, params);
-    
-    NSMutableURLRequest *request = [NSMutableURLRequest 
-                                    requestWithURL:[NSURL URLWithString:kRenrenApi]];
-    [request setHTTPMethod:@"POST"];
-    [request setHTTPShouldHandleCookies:NO];
-    
-    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithDictionary:params];
-    [query setObject:method forKey:@"method"];
-    [query setObject:@"1.0" forKey:@"v"];
-    [query setObject:accessToken_ forKey:@"access_token"];
-    [query setObject:@"JSON" forKey:@"format"];
-    
-    NSMutableArray *sigArray = [NSMutableArray array];
-    for (NSString *key in query) {
-        id value = [query valueForKey:key];
-        [sigArray addObject:[NSString stringWithFormat:@"%@=%@", key, value]];
-    }
-    [sigArray sortUsingSelector:@selector(compare:)];
-    [sigArray addObject:kSecretKey];
-    NSString *sig = [[sigArray componentsJoinedByString:@""] md5];
-    [query setObject:sig forKey:@"sig"];
-    
-    NSString *dataStr = [query buildQueryString];
-    [request setHTTPBody:[dataStr dataUsingEncoding:NSUTF8StringEncoding]];
-    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    
-    NSURLResponse *response;
-    NSError *error;
-    NSData *rawData = [NSURLConnection sendSynchronousRequest:request 
-                                            returningResponse:&response error:&error];
-    id data = [rawData JSONValue];
-    NSLog(@"return: %@", data);
-    return data;
+    return [photo pathWithRoot:_photosCacheDir];
 }
 
-- (NSDictionary *)getUserBaseInfo:(long)uid
-{
-    NSNumber *uidKey = [NSNumber numberWithInteger:uid];
-    NSDictionary *result = [baseCache_ objectForKey:uidKey];
-    if (! result) {
-        NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
-                                uidKey, @"uid", @"base_info", @"fields", nil];
-        NSDictionary *data = [self requestApi:@"users.getProfileInfo" 
-                                   withParams:params];
-        result = [NSDictionary dictionaryWithObjectsAndKeys:
-                  [data valueForKey:@"name"], @"name",
-                  [data valueForKey:@"headurl"], @"head",
-                  [[data valueForKey:@"base_info"] valueForKey:@"gender"], @"sex",
-                  nil];
-        [baseCache_ setObject:result forKey:uidKey];
-    }
-    return result;
-}
-
-- (NSDictionary *)getUserCountInfo:(long)uid
-{
-    NSNumber *uidKey = [NSNumber numberWithInteger:uid];
-    NSDictionary *result = [countCache_ objectForKey:uidKey];
-    if (! result) {
-        NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
-                                uidKey, @"uid",
-                                @"blogs_count,albums_count,friends_count", @"fields", 
-                                nil];
-        NSDictionary *data = [self requestApi:@"users.getProfileInfo" 
-                                   withParams:params];
-        result = [NSDictionary dictionaryWithObjectsAndKeys:
-                  [data valueForKey:@"blogs_count"], @"blogs",
-                  [data valueForKey:@"albums_count"], @"albums",
-                  [data valueForKey:@"friends_count"], @"friends", 
-                  nil];
-        [countCache_ setObject:result forKey:uidKey];
-    }
-    return result;
-}
-
-- (NSDictionary *)getUserAlbumsInfo:(long)uid
-{
-    NSNumber *uidKey = [NSNumber numberWithInteger:uid];
-    NSDictionary *result = [albumsCache_ objectForKey:uidKey];
-    if (! result) {
-        NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
-                                uidKey, @"uid", @"1000", @"count", nil];
-        NSDictionary *data = [self requestApi:@"photos.getAlbums" 
-                                   withParams:params];
-        NSMutableDictionary *albums = [NSMutableDictionary dictionary];
-        for (NSDictionary *album in data) {
-            [albums setObject:album forKey:[album valueForKey:@"aid"]];
-        }
-        result = [NSDictionary dictionaryWithDictionary:albums];
-        [albumsCache_ setObject:result forKey:uidKey];
-    }
-    return result;
-}
-
-- (NSDictionary *)getAlbumInfo:(long)aid ofUser:(long)uid
-{
-    return [[self getUserAlbumsInfo:uid] 
-            objectForKey:[NSNumber numberWithInteger:aid]];
-}
-
-- (NSDictionary *)getPhotosInAlbum:(long)aid ofUser:(long)uid
-{
-    NSNumber *aidKey = [NSNumber numberWithInteger:aid];
-    NSDictionary *result = [photosCache_ objectForKey:aidKey];
-    if (! result) {
-        NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
-                                [NSNumber numberWithInteger:uid], @"uid",
-                                aidKey, @"aid",
-                                @"200", @"count", 
-                                nil];
-        NSArray *data = [self requestApi:@"photos.get" withParams:params];
-        NSMutableDictionary *photos = [NSMutableDictionary dictionary];
-        for (NSDictionary *photo in data) {
-            [photos setObject:photo forKey:[photo valueForKey:@"pid"]];
-        }
-        result = [NSDictionary dictionaryWithDictionary:photos];
-        [photosCache_ setObject:result forKey:aidKey];
-    }
-    return result;
-}
-
-- (NSString *)getPhoto:(long)pid inAlbum:(long)aid ofUser:(long)uid
+- (BOOL)downloadPhoto:(RRPhoto *)photo error:(NSError *__autoreleasing *)error
 {
     NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSString *filename = [photosCacheDir_ stringByAppendingPathComponent:
-                          [NSString stringWithFormat:@"%ld/%ld/%ld.jpg",
-                           uid, aid, pid]];
+    NSString *filename = [self pathOfPhoto:photo];
+    BOOL result = YES;
     if (! [fileManager fileExistsAtPath:filename]) {
-        [fileManager createDirectoryAtPath:[filename stringByDeletingLastPathComponent] 
+        NSString *dirname = [filename stringByDeletingLastPathComponent];
+        [fileManager createDirectoryAtPath:dirname 
                withIntermediateDirectories:YES attributes:nil error:nil];
-        NSURL *url = [NSURL URLWithString:
-                      [[[photosCache_ objectForKey:[NSNumber numberWithInteger:aid]] 
-                        objectForKey:[NSNumber numberWithInteger:pid]] 
-                       valueForKey:@"url_large"]];
-        NSURLRequest *request = [NSURLRequest requestWithURL:url];
-        NSError *error;
-        [NSURLDownload sendSynchoronousRequest:request saveTo:filename error:&error];
+        NSURLRequest *request = [NSURLRequest requestWithURL:[photo url]];
+        result = [NSURLDownload sendSynchoronousRequest:request 
+                                                 saveTo:filename error:error];
     }
-    return filename;
+    return result;
 }
 
-- (NSDictionary *)parsePath:(NSString *)path
+- (RRFSPathParsingResult *)parsePath:(NSString *)path
 {
     NSArray *pathComponents = [path componentsSeparatedByString:@"/"];
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    [result setObject:@"user" forKey:TYPE];
-    [result setObject:[NSNumber numberWithInteger:uid_] forKey:UID];
-    [result setObject:[NSNumber numberWithBool:NO] forKey:LOCALIZED];
+        
+    // 初始化文件系统根目录为当前用户的用户目录
+    RRFSPathParsingResult *result = [[RRFSPathParsingResult alloc] init];
+    [result setType:RRFSPathTypeUser];
+    [result setObject:[_conn user]];
     
     for (NSString *component in pathComponents) {
         NSUInteger length = [component length];
         if (length == 0)
             continue;
-        BOOL isLocalized = NO;
+        
+        // 删除无关后缀
         NSString *fileName = component;
-        if (length > 10 && [fileName hasSuffix:@".localized"]) {
-            isLocalized = YES;
+        if (length > 10 && [fileName hasSuffix:RRFSPathSuffixLocalized]) {
+            [result setIsLocalized:YES];
             fileName = [fileName substringToIndex:length - 10];
         }
-        
-        NSString *currentType = [result valueForKey:TYPE];
-        if ([currentType isEqualToString:@"user"]) {
-            if ([fileName isEqualToString:@"Friends"]) {
-                if ([[result valueForKey:@"uid"] integerValue] != uid_) {
-                    result = nil;
-                }
-                else {
-                    [result setObject:@"friends" forKey:TYPE];
-                }
-            }
-            else if ([fileName isEqualToString:@"Photos"]) {
-                [result setObject:@"photos" forKey:TYPE];
-            }
-            else if ([fileName isEqualToString:@".localized"] && 
-                     [[result valueForKey:LOCALIZED] boolValue]) {
-                [result setObject:currentType forKey:ORIGTYPE];
-                [result setObject:@"localize" forKey:TYPE];
-            }
-            else {
-                result = nil;
-            }
-        }
-        else if ([currentType isEqualToString:@"friends"]) {
-            assert([[result valueForKey:UID] integerValue] == uid_);
-            if ([fileName hasPrefix:@"user_"]) {
-                long uid = [[fileName substringFromIndex:5] integerValue];
-                if ([friends_ containsObject:[NSNumber numberWithInteger:uid]]) {
-                    [result setObject:@"user" forKey:TYPE];
-                    [result setObject:[NSNumber numberWithInteger:uid] forKey:UID];
-                }
-                else {
-                    result = nil;
-                }
-            }
-            else {
-                result = nil;
-            }
-        }
-        else if ([currentType isEqualToString:@"photos"]) {
-            if ([fileName hasPrefix:@"album_"]) {
-                long aid = [[fileName substringFromIndex:6] integerValue];
-                long uid = [[result valueForKey:UID] integerValue];
-                if ([self getAlbumInfo:aid ofUser:uid]) {
-                    [result setObject:@"album" forKey:TYPE];
-                    [result setObject:[NSNumber numberWithInteger:aid] 
-                               forKey:AID];
-                }
-                else {
-                    result = nil;
-                }
-            }
-            else {
-                result = nil;
-            }
-        }
-        else if ([currentType isEqualToString:@"album"]) {
-            if ([fileName hasPrefix:@"photo_"] && [fileName hasSuffix:@".jpg"]) {
-                long pid = [[fileName substringFromIndex:6] integerValue];
-                long aid = [[result valueForKey:AID] integerValue];
-                long uid = [[result valueForKey:UID] integerValue];
-                NSNumber *pidKey = [NSNumber numberWithInteger:pid];
-                if ([[self getPhotosInAlbum:aid ofUser:uid] objectForKey:pidKey]) {
-                    [result setObject:@"photo" forKey:TYPE];
-                    [result setObject:pidKey forKey:PID];
-                }
-                else {
-                    result = nil;
-                }
-            }
-            else if ([fileName isEqualToString:@".localized"] && 
-                     [[result valueForKey:LOCALIZED] boolValue]) {
-                [result setObject:currentType forKey:ORIGTYPE];
-                [result setObject:@"localize" forKey:TYPE];
-            }
-            else {
-                result = nil;
-            }
-        }
-        else if ([currentType isEqualToString:@"localize"]) {
-            if ([fileName hasSuffix:@".strings"]) {
-                [result setObject:@"strings" forKey:TYPE];
-            }
-            else {
-                result = nil;
-            }
-        }
         else {
-            result = nil;
+            [result setIsLocalized:NO];
         }
         
-        [result setObject:[NSNumber numberWithBool:isLocalized] forKey:LOCALIZED];
-        if (! result) {
-            return nil;
+        // 层级递进分析目录
+        switch ([result type]) {
+            case RRFSPathTypeUser:
+                // 用户目录
+                if ([fileName isEqualToString:RRFSPathNameFriends]) {
+                    if ([result object] == [_conn user])
+                        [result setType:RRFSPathTypeFriends];
+                    else
+                        [result setType:RRFSPathTypeUnknown];
+                }
+                else if ([fileName isEqualToString:RRFSPathNamePhotos]) {
+                    [result setType:RRFSPathTypePhotos];
+                }
+                else if ([fileName isEqualToString:RRFSPathNameLocalized]) {
+                    [result setOrigType:[result type]];
+                    [result setType:RRFSPathTypeLocalize];
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+            
+            case RRFSPathTypeFriends:
+                // 好友目录
+                // 断言：好友目录只能存在于当前用户下
+                assert([result object] == [_conn user]);
+                if ([fileName hasPrefix:RRFSPathPrefixUser]) {
+                    NSNumber *uid;
+                    uid = [fileName numberByRemovingPrefix:RRFSPathPrefixUser];
+                    if ([[_conn friends] containsObject:uid]) {
+                        [result setType:RRFSPathTypeUser];
+                        [result setObject:[_conn user:uid]];
+                    }
+                    else {
+                        [result setType:RRFSPathTypeUnknown];
+                    }
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+            
+            case RRFSPathTypePhotos:
+                // 照片目录
+                if ([fileName hasPrefix:RRFSPathPrefixAlbum]) {
+                    NSNumber *aid;
+                    aid = [fileName numberByRemovingPrefix:RRFSPathPrefixAlbum];
+                    NSSet *albums = [_conn albumsOfUser:[result object]];
+                    if ([albums containsObject:aid]) {
+                        [result setType:RRFSPathTypeAlbum];
+                        [result setObject:[_conn album:aid]];
+                    }
+                    else {
+                        [result setType:RRFSPathTypeUnknown];
+                    }
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+                
+            case RRFSPathTypeAlbum:
+                // 相册目录
+                if ([fileName hasPrefix:RRFSPathPrefixPhoto] &&
+                    [fileName hasSuffix:RRFSPathSuffixPhoto]) {
+                    NSNumber *pid;
+                    pid = [fileName numberByRemovingPrefix:RRFSPathPrefixPhoto];
+                    NSLog(@"photo: %@ %@", pid, [fileName substringFromIndex:
+                                                 [RRFSPathPrefixPhoto length]]);
+                    NSSet *photos = [_conn photosOfAlbum:[result object]];
+                    if ([photos containsObject:pid]) {
+                        [result setType:RRFSPathTypePhoto];
+                        [result setObject:[_conn photo:pid]];
+                    }
+                    else {
+                        [result setType:RRFSPathTypeUnknown];
+                    }
+                }
+                else if ([fileName isEqualToString:RRFSPathNameLocalized]) {
+                    [result setOrigType:[result type]];
+                    [result setType:RRFSPathTypeLocalize];
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+                
+            case RRFSPathTypeLocalize:
+                // 别名目录
+                if ([fileName hasSuffix:RRFSPathSuffixStrings]) {
+                    [result setType:RRFSPathTypeStrings];
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+                
+            default:
+                [result setType:RRFSPathTypeUnknown];
+                break;
         }
+        
+        if ([result type] == RRFSPathTypeUnknown)
+            break;
     }
     
     return result;
 }
 
-- (NSString *)getLocalizedFileForUser:(long)uid
+- (NSString *)localizedFileForUser:(RRUser *)user
 {
-    NSString *name = [[self getUserBaseInfo:uid] valueForKey:@"name"];
-    return [NSString stringWithFormat:@"\"user_%ld\" = \"%@\";\n",
-            uid, [name stringByAddingSlashes]];
+    return [NSString stringWithFormat:@"\"user_%@\" = \"%@\";\n",
+            [user uid], [[user name] stringByAddingSlashes]];
 }
 
-- (NSString *)getLocalizedFileForAlbum:(long)aid ofUser:(long)uid
+- (NSString *)localizedFileForAlbum:(RRAlbum *)album
 {
-    NSString *name = [[self getAlbumInfo:aid ofUser:uid] valueForKey:@"name"];
-    return [NSString stringWithFormat:@"\"album_%ld\" = \"%@\";\n",
-            aid, [name stringByAddingSlashes]];
+    return [NSString stringWithFormat:@"\"album_%@\" = \"%@\";\n",
+            [album aid], [[album name] stringByAddingSlashes]];
 }
 
 - (NSArray *)contentsOfDirectoryAtPath:(NSString *)path 
                                  error:(NSError *__autoreleasing *)error
 {
-    NSDictionary *pathInfo = [self parsePath:path];
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
     NSMutableArray *result = [NSMutableArray array];
-    if ([[pathInfo valueForKey:LOCALIZED] boolValue]) {
-        [result addObject:@".localized"];
+    
+    // 添加别名文件夹
+    if ([pathInfo isLocalized]) {
+        [result addObject:RRFSPathNameLocalized];
     }
     
-    NSString *type = [pathInfo valueForKey:TYPE];
-    if ([type isEqualToString:@"user"]) {
-        if ([[pathInfo valueForKey:UID] integerValue] == uid_) {
-            [result addObject:@"Friends"];
-        }
-        [result addObject:@"Photos"];
-    }
-    else if ([type isEqualToString:@"friends"]) {
-        for (NSNumber *friend in friends_) {
-            [result addObject:[NSString stringWithFormat:@"user_%@.localized", friend]];
-        }
-    }
-    else if ([type isEqualToString:@"photos"]) {
-        long uid = [[pathInfo valueForKey:UID] integerValue];
-        for (NSNumber *album in [self getUserAlbumsInfo:uid]) {
-            [result addObject:[NSString stringWithFormat:@"album_%@.localized", album]];
-        }
-    }
-    else if ([type isEqualToString:@"album"]) {
-        long uid = [[pathInfo valueForKey:UID] integerValue];
-        long aid = [[pathInfo valueForKey:AID] integerValue];
-        for (NSNumber *photo in [self getPhotosInAlbum:aid ofUser:uid]) {
-            [result addObject:[NSString stringWithFormat:@"photo_%@.jpg", photo]];
-        }
-    }
-    else if ([type isEqualToString:@"localize"]) {
-        NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
-        NSString *lang = [[defs objectForKey:@"AppleLanguages"] objectAtIndex:0];
-        [result addObject:[NSString stringWithFormat:@"%@.strings", lang]];
-    }
-    else {
-        result = nil;
-        *error = [NSError errorWithPOSIXCode:ENOENT];
+    switch ([pathInfo type]) {
+        case RRFSPathTypeUser:
+            if ([pathInfo object] == [_conn user])
+                [result addObject:RRFSPathNameFriends];
+            [result addObject:RRFSPathNamePhotos];
+            break;
+        
+        case RRFSPathTypeFriends:
+            for (NSNumber *uid in [_conn friends]) {
+                [result addObject:[NSString 
+                                   stringWithFormat:RRFSPathNameUser, uid]];
+            }
+            break;
+            
+        case RRFSPathTypePhotos:
+            for (NSNumber *aid in [_conn albumsOfUser:[pathInfo object]]) {
+                [result addObject:[NSString 
+                                   stringWithFormat:RRFSPathNameAlbum, aid]];
+            }
+            break;
+            
+        case RRFSPathTypeAlbum:
+            for (NSNumber *pid in [_conn photosOfAlbum:[pathInfo object]]) {
+                [result addObject:[NSString 
+                                   stringWithFormat:RRFSPathNamePhoto, pid]];
+            }
+            break;
+        
+        case RRFSPathTypeLocalize:
+            [result addObject:RRFSStringsName];
+            break;
+            
+        default:
+            result = nil;
+            *error = [NSError errorWithPOSIXCode:ENOENT];
+            break;
     }
     
     return result;
@@ -429,69 +353,108 @@ static NSString * const ORIGTYPE = @"orig_type";
                                 userData:(id)userData 
                                    error:(NSError *__autoreleasing *)error
 {
-    NSDictionary *pathInfo = [self parsePath:path];
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    NSLog(@"attr: %@ %d", path, [pathInfo type]);
     
-    NSString *type = [pathInfo valueForKey:TYPE];
-    long uid = [[pathInfo valueForKey:UID] integerValue];
-    if ([type isEqualToString:@"user"]) {
-        [result setObject:NSFileTypeDirectory forKey:NSFileType];
-        [result setObject:[NSNumber numberWithInt:(uid == uid_ ? 5 : 4)] 
-                   forKey:NSFileReferenceCount];
+    BOOL failed = NO;
+    BOOL isDirectory;
+    NSUInteger referenceCount;
+    NSUInteger fileSize;
+    NSDate *creationTime = [NSDate date];
+    NSDate *modificationTime = [NSDate date];
+    
+    RRUser *user;
+    NSData *data;
+    
+    switch ([pathInfo type]) {
+        case RRFSPathTypeUser:
+            isDirectory = YES;
+            referenceCount = [pathInfo object] == [_conn user] ? 4 : 3;
+            break;
+        
+        case RRFSPathTypeFriends:
+            isDirectory = YES;
+            referenceCount = [[_conn friends] count] + 2;
+            break;
+        
+        case RRFSPathTypePhotos:
+            isDirectory = YES;
+            user = [pathInfo object];
+            if (! [user isAdditionInfoExists])
+                user = [_conn user:[user uid] forceUpdate:YES];
+            referenceCount = [user albumsCount] + 2;
+            break;
+            
+        case RRFSPathTypeAlbum:
+            isDirectory = YES;
+            referenceCount = 2;
+            creationTime = [[pathInfo object] createTime];
+            modificationTime = [[pathInfo object] updateTime];
+            break;
+            
+        case RRFSPathTypePhoto:
+            isDirectory = NO;
+            creationTime = modificationTime = [[pathInfo object] time];
+            if (! [self downloadPhoto:[pathInfo object] error:error]) {
+                failed = YES;
+            }
+            else {
+                NSString *filename = [self pathOfPhoto:[pathInfo object]];
+                NSFileManager *fileManager = [NSFileManager defaultManager];
+                NSDictionary *fileAttr = [fileManager 
+                                          attributesOfItemAtPath:filename 
+                                          error:error];
+                if (! fileAttr) {
+                    failed = YES;
+                }
+                else {
+                    fileSize = [[fileAttr objectForKey:NSFileSize] 
+                                unsignedIntegerValue];
+                }
+            }
+            break;
+        
+        case RRFSPathTypeLocalize:
+            isDirectory = YES;
+            referenceCount = 2;
+            break;
+        
+        case RRFSPathTypeStrings:
+        case RRFSPathTypeUnknown:
+        default:
+            data = [self readFileAtPath:path];
+            if (data) {
+                isDirectory = NO;
+                fileSize = [data length];
+            }
+            else {
+                *error = [NSError errorWithPOSIXCode:ENOENT];
+                failed = YES;
+            }
+            
+            break;
     }
-    else if ([type isEqualToString:@"friends"]) {
-        NSUInteger friendsCount = [friends_ count];
-        [result setObject:NSFileTypeDirectory forKey:NSFileType];
-        [result setObject:[NSNumber numberWithUnsignedInteger:friendsCount + 2] 
-                   forKey:NSFileReferenceCount];
+    
+    NSDictionary *result;
+    if (failed) {
+        result = nil;
     }
-    else if ([type isEqualToString:@"photos"]) {
-        NSUInteger albumsCount = [[[self getUserCountInfo:uid] 
-                                   valueForKey:@"albums"] integerValue];
-        [result setObject:NSFileTypeDirectory forKey:NSFileType];
-        [result setObject:[NSNumber numberWithUnsignedInteger:albumsCount + 2]
-                   forKey:NSFileReferenceCount];
-    }
-    else if ([type isEqualToString:@"album"]) {
-        [result setObject:NSFileTypeDirectory forKey:NSFileType];
-        [result setObject:[NSNumber numberWithInt:2] forKey:NSFileReferenceCount];
-        NSDictionary *album = [self getAlbumInfo:[[pathInfo valueForKey:AID] integerValue]
-                                          ofUser:[[pathInfo valueForKey:UID] integerValue]];
-        [result setObject:[NSDate dateWithRenrenString:[album valueForKey:@"create_time"]] 
-                   forKey:NSFileCreationDate];
-        [result setObject:[NSDate dateWithRenrenString:[album valueForKey:@"update_time"]] 
-                   forKey:NSFileModificationDate];
-    }
-    else if ([type isEqualToString:@"photo"]) {
-        long pid = [[pathInfo valueForKey:PID] integerValue];
-        long aid = [[pathInfo valueForKey:AID] integerValue];
-        NSString *filename = [self getPhoto:pid inAlbum:aid ofUser:uid];
-        NSFileManager *fileManager = [NSFileManager defaultManager];
-        NSDictionary *fileAttr = [fileManager attributesOfItemAtPath:filename error:nil];
-        [result setObject:NSFileTypeRegular forKey:NSFileType];
-        [result setObject:[fileAttr objectForKey:NSFileSize] forKey:NSFileSize];
-        NSDictionary *photo = [[self getPhotosInAlbum:aid ofUser:uid] 
-                               objectForKey:[pathInfo valueForKey:PID]];
-        NSDate *time = [NSDate dateWithRenrenString:[photo valueForKey:@"time"]];
-        [result setObject:time forKey:NSFileCreationDate];
-        [result setObject:time forKey:NSFileModificationDate];
-    }
-    else if ([type isEqualToString:@"localize"]) {
-        [result setObject:NSFileTypeDirectory forKey:NSFileType];
-        [result setObject:[NSNumber numberWithInteger:2] 
-                   forKey:NSFileReferenceCount];
+    else if (isDirectory) {
+        result = [NSDictionary dictionaryWithObjectsAndKeys:
+                  NSFileTypeDirectory, NSFileType,
+                  [NSNumber numberWithUnsignedInteger:referenceCount], 
+                  NSFileReferenceCount,
+                  creationTime, NSFileCreationDate,
+                  modificationTime, NSFileModificationDate,
+                  nil];
     }
     else {
-        NSData *data = [self readFileAtPath:path];
-        if (data) {
-            [result setObject:NSFileTypeRegular forKey:NSFileType];
-            [result setObject:[NSNumber numberWithUnsignedInteger:[data length]] 
-                       forKey:NSFileSize];
-        }
-        else {
-            *error = [NSError errorWithPOSIXCode:ENOENT];
-            result = nil;
-        }
+        result = [NSDictionary dictionaryWithObjectsAndKeys:
+                  NSFileTypeRegular, NSFileType,
+                  [NSNumber numberWithUnsignedInteger:fileSize], NSFileSize,
+                  creationTime, NSFileCreationDate,
+                  modificationTime, NSFileModificationDate,
+                  nil];
     }
     
     return result;
@@ -499,19 +462,16 @@ static NSString * const ORIGTYPE = @"orig_type";
 
 - (NSData *)readFileAtPath:(NSString *)path
 {
-    NSDictionary *pathInfo = [self parsePath:path];
-    NSString *type = [pathInfo valueForKey:TYPE];
-    long uid = [[pathInfo valueForKey:UID] integerValue];
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
     NSData *data;
-    if ([type isEqualToString:@"strings"]) {
+    
+    if ([pathInfo type] == RRFSPathTypeStrings) {
         NSString *strings;
-        NSString *origType = [pathInfo valueForKey:ORIGTYPE];
-        if ([origType isEqualToString:@"user"]) {
-            strings = [self getLocalizedFileForUser:uid];
+        if ([pathInfo origType] == RRFSPathTypeUser) {
+            strings = [self localizedFileForUser:[pathInfo object]];
         }
-        else if ([origType isEqualToString:@"album"]) {
-            long aid = [[pathInfo valueForKey:AID] integerValue];
-            strings = [self getLocalizedFileForAlbum:aid ofUser:uid];
+        else if ([pathInfo origType] == RRFSPathTypeAlbum) {
+            strings = [self localizedFileForAlbum:[pathInfo object]];
         }
         else {
             strings = nil;
@@ -521,6 +481,7 @@ static NSString * const ORIGTYPE = @"orig_type";
     else {
         data = nil;
     }
+    
     return data;
 }
 
@@ -528,31 +489,32 @@ static NSString * const ORIGTYPE = @"orig_type";
               userData:(__autoreleasing id *)userData 
                  error:(NSError *__autoreleasing *)error
 {
-    NSDictionary *pathInfo = [self parsePath:path];
-    NSString *type = [pathInfo valueForKey:TYPE];
-    if ([type isEqualToString:@"photo"]) {
-        NSString *filename = [self getPhoto:[[pathInfo valueForKey:PID] integerValue]
-                                    inAlbum:[[pathInfo valueForKey:AID] integerValue]
-                                     ofUser:[[pathInfo valueForKey:UID] integerValue]];
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    BOOL result;
+    
+    if ([pathInfo type] == RRFSPathTypePhoto) {
+        NSString *filename = [self pathOfPhoto:[pathInfo object]];
         int fd = open([filename UTF8String], mode);
         if (fd < 0) {
             if (error) {
                 *error = [NSError errorWithPOSIXCode:errno];
             }
-            return NO;
+            result = NO;
         }
         else {
             *userData = [NSNumber numberWithInt:fd];
-            return YES;
+            result = YES;
         }
     }
-    else if ([type isEqualToString:@"strings"]) {
+    else if ([pathInfo type] == RRFSPathTypeStrings) {
         *userData = [NSNumber numberWithInt:0];
-        return YES;
+        result = YES;
     }
     else {
-        return NO;
+        result = NO;
     }
+    
+    return result;
 }
 
 - (void)releaseFileAtPath:(NSString *)path userData:(id)userData
