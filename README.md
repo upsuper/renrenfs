@@ -10,8 +10,7 @@
 
 然后需要安装 FUSE，Mac OS X 下安装的是 [OSXFUSE](http://osxfuse.github.com/)。
 
-除了 FUSE 之外，还需要安装 [SBJson](https://github.com/upsuper/json-framework) 这个 JSON 解析库。点击前面的地址，然后 `git clone` 后用 Xcode 打开编译，并将编译后的 SBJson.framework 文件夹拷贝到 /Library/Frameworks 下面。
-事实上这个库的官方源在 https://github.com/stig/json-framework ，我对它进行了一些修改，并且在这个项目中依赖这些修改。我已经申请合并到其代码中去，估计一段时间后就可以通过了吧。
+除了 FUSE 之外，还需要安装 [SBJson](https://github.com/stig/json-framework) 这个 JSON 解析库。点击前面的地址，然后 `git clone` 后用 Xcode 打开编译，并将编译后的 SBJson.framework 文件夹拷贝到 /Library/Frameworks 下面。
 
 最后打开 RenrenFS 的工程，将之前申请的 API Key 和 Secret Key 填入RenrenFS.m 的对应位置，然后编译执行。
 
