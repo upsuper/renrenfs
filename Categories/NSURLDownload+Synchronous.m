@@ -9,8 +9,8 @@
 #import "NSURLDownload+Synchronous.h"
 
 @interface DownloadDelegate : NSObject <NSURLDownloadDelegate> {
-    NSString *path_;
-    NSError *error_;
+    NSString *_path;
+    NSError *_error;
 }
 
 @property (readonly) NSError *error;
@@ -21,20 +21,20 @@
 
 @implementation DownloadDelegate
 
-@synthesize error = error_;
+@synthesize error = _error;
 
 - (id)initWithPath:(NSString *)path
 {
     if (self = [super init]) {
-        path_ = path;
-        error_ = nil;
+        _path = path;
+        _error = nil;
     }
     return self;
 }
 
 - (void)download:(NSURLDownload *)download decideDestinationWithSuggestedFilename:(NSString *)filename
 {
-    [download setDestination:path_ allowOverwrite:YES];
+    [download setDestination:_path allowOverwrite:YES];
 }
 
 - (void)downloadDidFinish:(NSURLDownload *)download
@@ -44,7 +44,7 @@
 
 - (void)download:(NSURLDownload *)download didFailWithError:(NSError *)error
 {
-    error_ = error;
+    _error = error;
     CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
@@ -62,8 +62,10 @@
     BOOL result = NO;
     if (download) {
         [[NSRunLoop currentRunLoop] run];
-        *error = [delegate error];
-        result = ! *error;
+        if (error)
+            *error = [delegate error];
+        if (! [delegate error])
+            result = YES;
     }
     return result;
 }
