@@ -7,6 +7,8 @@
 //
 
 #import <errno.h>
+#import <unistd.h>
+#import <sys/stat.h>
 #import "RenrenFS.h"
 #import <OSXFUSE/OSXFUSE.h>
 #import <SBJson/SBJson.h>
@@ -27,6 +29,12 @@ typedef enum {
     RRFSPathTypeLocalize,
     RRFSPathTypeStrings
 } RRFSPathType;
+
+typedef enum {
+    RRFSOwnerSelf,
+    RRFSOwnerFriend,
+    RRFSOwnerOther
+} RRFSOwner;
 
 @interface RRFSPathParsingResult : NSObject {
 @public
@@ -67,6 +75,8 @@ static NSString * const RRFSPathSuffixStrings = @".strings";
 static NSString * const RRFSPathSuffixLocalized = @".localized";
 
 static NSString *RRFSStringsName;
+static uid_t RRFSUid;
+static gid_t RRFSGid;
 
 @interface RRPhoto (Path)
 
@@ -116,9 +126,13 @@ static NSString *RRFSStringsName;
 
 + (void)initialize
 {
+    // 初始化默认语言名称
     NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
     NSString *lang = [[defs objectForKey:@"AppleLanguages"] objectAtIndex:0];
     RRFSStringsName = [NSString stringWithFormat:RRFSPathNameStrings, lang];
+    // 初始化当前用户和当前组
+    RRFSUid = getuid();
+    RRFSGid = getgid();
 }
 
 - (id)initWithConnection:(RRConnection *)conn cacheDir:(NSString *)cacheDir
@@ -362,19 +376,31 @@ static NSString *RRFSStringsName;
     NSUInteger fileSize;
     NSDate *creationTime = [NSDate date];
     NSDate *modificationTime = [NSDate date];
+    NSNumber *pathUid = [[pathInfo object] uid];
+    RRFSOwner whosOwner;
+    if ([pathUid isEqualToNumber:[[_conn user] uid]])
+        whosOwner = RRFSOwnerSelf;
+    else if ([[_conn friends] containsObject:pathUid])
+        whosOwner = RRFSOwnerFriend;
+    else
+        whosOwner = RRFSOwnerOther;
+    mode_t permission = 0644;
     
     RRUser *user;
+    RRAlbum *album;
     NSData *data;
     
     switch ([pathInfo type]) {
         case RRFSPathTypeUser:
             isDirectory = YES;
-            referenceCount = [pathInfo object] == [_conn user] ? 4 : 3;
+            permission = 0555;
+            referenceCount = whosOwner == RRFSOwnerSelf ? 4 : 3;
             break;
         
         case RRFSPathTypeFriends:
             isDirectory = YES;
             referenceCount = [[_conn friends] count] + 2;
+            permission = 0755;
             break;
         
         case RRFSPathTypePhotos:
@@ -383,18 +409,36 @@ static NSString *RRFSStringsName;
             if (! [user isAdditionInfoExists])
                 user = [_conn user:[user uid] forceUpdate:YES];
             referenceCount = [user albumsCount] + 2;
+            permission = 0755;
             break;
             
         case RRFSPathTypeAlbum:
             isDirectory = YES;
             referenceCount = 2;
-            creationTime = [[pathInfo object] createTime];
-            modificationTime = [[pathInfo object] updateTime];
+            album = [pathInfo object];
+            creationTime = [album createTime];
+            modificationTime = [album updateTime];
+            switch ([album visible]) {
+                case RRAlbumVisibleSameNetwork:
+                case RRAlbumVisiblePassword:
+                case RRAlbumVisibleSelf:
+                    permission = 0700;
+                    break;
+                case RRAlbumVisibleFriends:
+                    permission = 0750;
+                    break;
+                case RRAlbumVisibleAll:
+                    permission = 0755;
+                    break;
+                default:
+                    break;
+            }
             break;
             
         case RRFSPathTypePhoto:
             isDirectory = NO;
             creationTime = modificationTime = [[pathInfo object] time];
+            permission = 0644;
             if (! [self downloadPhoto:[pathInfo object] error:error]) {
                 failed = YES;
             }
@@ -417,9 +461,12 @@ static NSString *RRFSStringsName;
         case RRFSPathTypeLocalize:
             isDirectory = YES;
             referenceCount = 2;
+            permission = 0555;
             break;
         
         case RRFSPathTypeStrings:
+            permission = 0444;
+            
         case RRFSPathTypeUnknown:
         default:
             data = [self readFileAtPath:path];
@@ -435,26 +482,73 @@ static NSString *RRFSStringsName;
             break;
     }
     
-    NSDictionary *result;
+    NSMutableDictionary *result;
+    uid_t uid;
+    gid_t gid;
+    u_int flags = 0;
     if (failed) {
         result = nil;
     }
-    else if (isDirectory) {
-        result = [NSDictionary dictionaryWithObjectsAndKeys:
-                  NSFileTypeDirectory, NSFileType,
-                  [NSNumber numberWithUnsignedInteger:referenceCount], 
-                  NSFileReferenceCount,
-                  creationTime, NSFileCreationDate,
-                  modificationTime, NSFileModificationDate,
-                  nil];
-    }
     else {
-        result = [NSDictionary dictionaryWithObjectsAndKeys:
-                  NSFileTypeRegular, NSFileType,
-                  [NSNumber numberWithUnsignedInteger:fileSize], NSFileSize,
-                  creationTime, NSFileCreationDate,
-                  modificationTime, NSFileModificationDate,
-                  nil];
+        result = [NSMutableDictionary dictionary];
+        // 设置文件类型和基本属性
+        if (isDirectory) {
+            [result setObject:NSFileTypeDirectory forKey:NSFileType];
+            [result setObject:
+             [NSNumber numberWithUnsignedInteger:referenceCount] 
+                       forKey:NSFileReferenceCount];
+        }
+        else {
+            [result setObject:NSFileTypeRegular forKey:NSFileType];
+            [result setObject:[NSNumber numberWithUnsignedInteger:fileSize] 
+                                                           forKey:NSFileSize];
+        }
+        // 时间相关属性
+        [result setObject:creationTime forKey:NSFileCreationDate];
+        [result setObject:modificationTime forKey:NSFileModificationDate];
+        // 访问权限
+        [result setObject:[NSNumber numberWithShort:permission]
+                   forKey:NSFilePosixPermissions];
+        
+        // 设置所有者 ID 和组 ID
+        switch (whosOwner) {
+            case RRFSOwnerSelf:
+                uid = RRFSUid; gid = RRFSGid;
+                break;
+            case RRFSOwnerFriend:
+                uid = 0; gid = RRFSGid;
+                break;
+            case RRFSOwnerOther:
+                uid = 0; gid = 0;
+                break;
+                
+        }
+        [result setObject:[NSNumber numberWithUnsignedInt:uid]
+                   forKey:NSFileOwnerAccountID];
+        [result setObject:[NSNumber numberWithUnsignedInt:gid]
+                   forKey:NSFileGroupOwnerAccountID];
+        
+        // 检查当前用户是否有访问权限
+        BOOL isAllowed = YES;
+        if (whosOwner == RRFSOwnerFriend) {
+            if (isDirectory)
+                isAllowed = (permission & 0050) == 0050;
+            else
+                isAllowed = (permission & 0040) == 0040;
+        }
+        else if (whosOwner == RRFSOwnerOther) {
+            if (isDirectory)
+                isAllowed = (permission & 0005) == 0005;
+            else
+                isAllowed = (permission & 0004) == 0004;
+        }
+        // 如果没有访问权限则自动隐藏
+        if (! isAllowed)
+            flags |= UF_HIDDEN;
+        
+        // 设置附加标志
+        [result setObject:[NSNumber numberWithUnsignedInt:flags] 
+                   forKey:kGMUserFileSystemFileFlagsKey];
     }
     
     return result;
