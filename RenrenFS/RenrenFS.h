@@ -14,6 +14,7 @@
     RRConnection *_conn;    
     NSString *_cacheDir;
     NSString *_headsCacheDir;
+    NSString *_coversCacheDir;
     NSString *_photosCacheDir;
 }
 

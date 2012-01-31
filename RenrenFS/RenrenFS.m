@@ -84,6 +84,7 @@ static NSString *RRFSStringsName;
 static uid_t RRFSUid;
 static gid_t RRFSGid;
 static NSImage *RRFSIconUser;
+static NSImage *RRFSIconAlbum;
 
 @interface NSString (NumberValueWithPrefix)
 
@@ -107,6 +108,8 @@ static NSImage *RRFSIconUser;
 
 - (NSString *)pathOfHeadOfUser:(RRUser *)user;
 - (BOOL)generateHeadOfUser:(RRUser *)user error:(NSError **)error;
+- (NSString *)pathOfCoverOfAlbum:(RRAlbum *)album;
+- (BOOL)generateCoverOfAlbum:(RRAlbum *)album error:(NSError **)error;
 - (NSString *)pathOfPhoto:(RRPhoto *)photo;
 - (BOOL)downloadPhoto:(RRPhoto *)photo error:(NSError **)error;
 - (NSString *)localizedFileForUser:(RRUser *)user;
@@ -126,10 +129,12 @@ static NSImage *RRFSIconUser;
     // 初始化当前用户和当前组
     RRFSUid = getuid();
     RRFSGid = getgid();
-    // 初始化图表模板
+    // 初始化图标模板
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
     RRFSIconUser = [workspace iconForFileType:
                     NSFileTypeForHFSTypeCode(kWorkgroupFolderIcon)];
+    RRFSIconAlbum = [workspace iconForFile:
+                     [@"~/Pictures" stringByExpandingTildeInPath]];
 }
 
 - (id)initWithConnection:(RRConnection *)conn cacheDir:(NSString *)cacheDir
@@ -138,6 +143,7 @@ static NSImage *RRFSIconUser;
         _conn = conn;
         _cacheDir = [cacheDir stringByStandardizingPath];
         _headsCacheDir = [_cacheDir stringByAppendingPathComponent:@"heads"];
+        _coversCacheDir = [_cacheDir stringByAppendingPathComponent:@"covers"];
         _photosCacheDir = [_cacheDir stringByAppendingPathComponent:@"photos"];
     }
     return self;
@@ -185,6 +191,61 @@ static NSImage *RRFSIconUser;
         NSImageInterpolation interpolation = [context imageInterpolation];
         [context setImageInterpolation:NSImageInterpolationHigh];
         [headImage drawInRect:destRect
+                     fromRect:sourceRect
+                    operation:NSCompositeSourceOver
+                     fraction:1.0];
+        [context setImageInterpolation:interpolation];
+        [folderIcon unlockFocus];
+        // 保存图标到文件
+        NSData *icnsData = [folderIcon icnsDataWithWidth:256];
+        result = [icnsData writeToFile:filename atomically:YES];
+    }
+    return result;
+}
+
+- (NSString *)pathOfCoverOfAlbum:(RRAlbum *)album
+{
+    return [_coversCacheDir stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"%@/%@.icns", 
+             [album uid], [album aid]]];
+}
+
+- (BOOL)generateCoverOfAlbum:(RRAlbum *)album 
+                       error:(NSError *__autoreleasing *)error
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *filename = [self pathOfCoverOfAlbum:album];
+    BOOL result = YES;
+    if (! [fileManager fileExistsAtPath:filename]) {
+        NSString *dirname = [filename stringByDeletingLastPathComponent];
+        result = [fileManager createDirectoryAtPath:dirname 
+                        withIntermediateDirectories:YES 
+                                         attributes:nil 
+                                              error:error];
+        if (! result)
+            return NO;
+        // 获取头像图片
+        NSImage *coverImage = [[NSImage alloc] 
+                               initByReferencingURL:[album cover]];
+        if (! coverImage)
+            return NO;
+        // 根据头像图片生成图标
+        const int kIconSize = 256;
+        NSImage *folderIcon = [RRFSIconAlbum copy];
+        NSSize iconSize = NSMakeSize(kIconSize, kIconSize);
+        [folderIcon setSize:iconSize];
+        [folderIcon lockFocus];
+        NSSize headSize = [coverImage size];
+        NSRect sourceRect = NSMakeRect(0, 0, headSize.width, headSize.height);
+        NSSize folderSize = [folderIcon size];
+        NSRect destRect = NSMakeRect(folderSize.width * 0.5, 
+                                     0, 
+                                     folderSize.width * 0.5, 
+                                     folderSize.height * 0.5);
+        NSGraphicsContext *context = [NSGraphicsContext currentContext];
+        NSImageInterpolation interpolation = [context imageInterpolation];
+        [context setImageInterpolation:NSImageInterpolationHigh];
+        [coverImage drawInRect:destRect
                      fromRect:sourceRect
                     operation:NSCompositeSourceOver
                      fraction:1.0];
@@ -335,6 +396,10 @@ static NSImage *RRFSIconUser;
                     [result setOrigType:RRFSPathTypeAlbum];
                     [result setType:RRFSPathTypeLocalize];
                 }
+                else if ([fileName isEqualToString:RRFSPathNameIcon]) {
+                    [result setOrigType:RRFSPathTypeAlbum];
+                    [result setType:RRFSPathTypeIcon];
+                }
                 else {
                     [result setType:RRFSPathTypeUnknown];
                 }
@@ -416,6 +481,7 @@ static NSImage *RRFSIconUser;
                 [result addObject:[NSString 
                                    stringWithFormat:RRFSPathNamePhoto, pid]];
             }
+            [result addObject:RRFSPathNameIcon];
             break;
         
         case RRFSPathTypeLocalize:
@@ -737,6 +803,9 @@ static NSImage *RRFSIconUser;
     if (type == RRFSPathTypeUser && ! [pathInfo isRoot]) {
         result = [NSArray arrayWithObject:@"com.apple.FinderInfo"];
     }
+    else if (type == RRFSPathTypeAlbum) {
+        result = [NSArray arrayWithObject:@"com.apple.FinderInfo"];
+    }
     else if (type == RRFSPathTypeIcon) {
         result = [NSArray arrayWithObjects:
                   @"com.apple.FinderInfo", 
@@ -759,6 +828,8 @@ static NSImage *RRFSIconUser;
     
     if (type == RRFSPathTypeUser && ! [pathInfo isRoot])
         finderFlags = kHasCustomIcon;
+    else if (type == RRFSPathTypeAlbum)
+        finderFlags = kHasCustomIcon;
     
     if (finderFlags) {
         result = [NSDictionary 
@@ -777,7 +848,7 @@ static NSImage *RRFSIconUser;
 {
     RRFSPathParsingResult *pathInfo = [self parsePath:path];
     RRFSPathType type = [pathInfo type];
-    NSDictionary *result;
+    NSDictionary *result = nil;
     
     if (type == RRFSPathTypeUser && ! [pathInfo isRoot]) {
         RRUser *user = [pathInfo object];
@@ -788,8 +859,15 @@ static NSImage *RRFSIconUser;
                        [self pathOfHeadOfUser:user]] 
                       forKey:kGMUserFileSystemCustomIconDataKey];
         }
-        else {
-            result = nil;
+    }
+    else if (type == RRFSPathTypeAlbum) {
+        RRAlbum *album = [pathInfo object];
+        if ([self generateCoverOfAlbum:album error:error]) {
+            result = [NSDictionary
+                      dictionaryWithObject:
+                      [NSData dataWithContentsOfFile:
+                       [self pathOfCoverOfAlbum:album]] 
+                      forKey:kGMUserFileSystemCustomIconDataKey];
         }
     }
     else {
