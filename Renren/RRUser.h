@@ -18,8 +18,8 @@ typedef enum {
     // 基础信息，对象存在时一定存在
     NSNumber *_uid;
     NSString *_name;
-    NSURL *_headurl;
     RRGender _gender;
+    NSURL *_tinyHeadURL;
     // 附加信息，可能不存在，需要另外获取
     size_t _blogsCount;
     size_t _albumsCount;
@@ -37,7 +37,7 @@ typedef enum {
 // 基础信息
 @property (readonly) NSNumber *uid;
 @property (readonly) NSString *name;
-@property (readonly) NSURL *headurl;
+@property (readonly) NSURL *tinyHeadURL;
 @property (readonly) RRGender gender;
 // 附加信息
 @property (readonly) size_t blogsCount;

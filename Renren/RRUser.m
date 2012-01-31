@@ -12,8 +12,8 @@
 
 @synthesize uid = _uid;
 @synthesize name = _name;
-@synthesize headurl = _headurl;
 @synthesize gender = _gender;
+@synthesize tinyHeadURL = _tinyHeadURL;
 
 @synthesize blogsCount = _blogsCount;
 @synthesize albumsCount = _albumsCount;
@@ -51,14 +51,16 @@
     NSNumber *gender = [data valueForKey:@"sex"];
     if (! gender)
         gender = [[data valueForKey:@"base_info"] valueForKey:@"gender"];
-    NSString *headurl = [data valueForKey:@"headurl"];
+    NSString *headurl = [data valueForKey:@"tinyurl"];
+    if (! headurl)
+        headurl = [data valueForKey:@"headurl"];
     if (! uid || ! name || ! gender | ! headurl)
         return NO;
         
     _uid = uid;
     _name = name;
     _gender = [gender intValue];
-    _headurl = [NSURL URLWithString:headurl];
+    _tinyHeadURL = [NSURL URLWithString:headurl];
     _baseLastUpdated = [NSDate date];
     return YES;
 }

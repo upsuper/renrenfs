@@ -17,6 +17,7 @@
 #import "NSDictionary+QueryBuilder.h"
 #import "NSString+EscapeQuotes.h"
 #import "NSURLDownload+Synchronous.h"
+#import "NSImage+IconData.h"
 #import "Renren.h"
 
 typedef enum {
@@ -27,7 +28,8 @@ typedef enum {
     RRFSPathTypeAlbum,
     RRFSPathTypePhoto,
     RRFSPathTypeLocalize,
-    RRFSPathTypeStrings
+    RRFSPathTypeStrings,
+    RRFSPathTypeIcon
 } RRFSPathType;
 
 typedef enum {
@@ -42,12 +44,14 @@ typedef enum {
     id _object;
     BOOL _isLocalized;
     RRFSPathType _origType;
+    BOOL _isRoot;
 }
 
 @property RRFSPathType type;
 @property (strong) id object;
 @property BOOL isLocalized;
 @property RRFSPathType origType;
+@property BOOL isRoot;
 
 @end
 
@@ -57,6 +61,7 @@ typedef enum {
 @synthesize object = _object;
 @synthesize isLocalized = _isLocalized;
 @synthesize origType = _origType;
+@synthesize isRoot = _isRoot;
 
 @end
 
@@ -67,6 +72,7 @@ static NSString * const RRFSPathNameAlbum = @"album_%@.localized";
 static NSString * const RRFSPathNamePhoto = @"photo_%@.jpg";
 static NSString * const RRFSPathNameStrings = @"%@.strings";
 static NSString * const RRFSPathNameLocalized = @".localized";
+static NSString * const RRFSPathNameIcon = @"Icon\r";
 static NSString * const RRFSPathPrefixUser = @"user_";
 static NSString * const RRFSPathPrefixAlbum = @"album_";
 static NSString * const RRFSPathPrefixPhoto = @"photo_";
@@ -77,22 +83,6 @@ static NSString * const RRFSPathSuffixLocalized = @".localized";
 static NSString *RRFSStringsName;
 static uid_t RRFSUid;
 static gid_t RRFSGid;
-
-@interface RRPhoto (Path)
-
-- (NSString *)pathWithRoot:(NSString *)root;
-
-@end
-
-@implementation RRPhoto (Path)
-
-- (NSString *)pathWithRoot:(NSString *)root
-{
-    return [root stringByAppendingPathComponent:
-            [NSString stringWithFormat:@"%@/%@/%@.jpg", _uid, _aid, _pid]];
-}
-
-@end
 
 @interface NSString (NumberValueWithPrefix)
 
@@ -114,6 +104,8 @@ static gid_t RRFSGid;
 
 - (RRFSPathParsingResult *)parsePath:(NSString *)path;
 
+- (NSString *)pathOfHeadOfUser:(RRUser *)user;
+- (BOOL)generateHeadOfUser:(RRUser *)user error:(NSError **)error;
 - (NSString *)pathOfPhoto:(RRPhoto *)photo;
 - (BOOL)downloadPhoto:(RRPhoto *)photo error:(NSError **)error;
 - (NSString *)localizedFileForUser:(RRUser *)user;
@@ -140,14 +132,73 @@ static gid_t RRFSGid;
     if (self = [super init]) {
         _conn = conn;
         _cacheDir = [cacheDir stringByStandardizingPath];
+        _headsCacheDir = [_cacheDir stringByAppendingPathComponent:@"heads"];
         _photosCacheDir = [_cacheDir stringByAppendingPathComponent:@"photos"];
     }
     return self;
 }
 
+- (NSString *)pathOfHeadOfUser:(RRUser *)user
+{
+    return [_headsCacheDir stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"%@.icns", [user uid]]];
+}
+
+- (BOOL)generateHeadOfUser:(RRUser *)user 
+                     error:(NSError *__autoreleasing *)error
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSString *filename = [self pathOfHeadOfUser:user];
+    BOOL result = YES;
+    if (! [fileManager fileExistsAtPath:filename]) {
+        NSString *dirname = [filename stringByDeletingLastPathComponent];
+        result = [fileManager createDirectoryAtPath:dirname 
+                        withIntermediateDirectories:YES 
+                                         attributes:nil 
+                                              error:error];
+        if (! result)
+            return NO;
+        // 获取头像图片
+        NSImage *headImage = [[NSImage alloc] 
+                              initByReferencingURL:[user tinyHeadURL]];
+        if (! headImage)
+            return NO;
+        // 根据头像图片生成图标
+        const int kIconSize = 256;
+        NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
+        NSImage *folderIcon = [workspace iconForFileType:
+                               NSFileTypeForHFSTypeCode(kWorkgroupFolderIcon)];
+        NSSize iconSize = NSMakeSize(kIconSize, kIconSize);
+        [folderIcon setSize:iconSize];
+        [folderIcon lockFocus];
+        NSSize headSize = [headImage size];
+        NSRect sourceRect = NSMakeRect(0, 0, headSize.width, headSize.height);
+        NSSize folderSize = [folderIcon size];
+        NSRect destRect = NSMakeRect(folderSize.width * 0.5, 
+                                     0, 
+                                     folderSize.width * 0.5, 
+                                     folderSize.height * 0.5);
+        NSGraphicsContext *context = [NSGraphicsContext currentContext];
+        NSImageInterpolation interpolation = [context imageInterpolation];
+        [context setImageInterpolation:NSImageInterpolationHigh];
+        [headImage drawInRect:destRect
+                     fromRect:sourceRect
+                    operation:NSCompositeSourceOver
+                     fraction:1.0];
+        [context setImageInterpolation:interpolation];
+        [folderIcon unlockFocus];
+        // 保存图标到文件
+        NSData *icnsData = [folderIcon icnsDataWithWidth:256];
+        result = [icnsData writeToFile:filename atomically:YES];
+    }
+    return result;
+}
+
 - (NSString *)pathOfPhoto:(RRPhoto *)photo
 {
-    return [photo pathWithRoot:_photosCacheDir];
+    return [_photosCacheDir stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"%@/%@/%@.jpg", 
+             [photo uid], [photo aid], [photo pid]]];
 }
 
 - (BOOL)downloadPhoto:(RRPhoto *)photo error:(NSError *__autoreleasing *)error
@@ -157,11 +208,16 @@ static gid_t RRFSGid;
     BOOL result = YES;
     if (! [fileManager fileExistsAtPath:filename]) {
         NSString *dirname = [filename stringByDeletingLastPathComponent];
-        [fileManager createDirectoryAtPath:dirname 
-               withIntermediateDirectories:YES attributes:nil error:nil];
+        result = [fileManager createDirectoryAtPath:dirname 
+                        withIntermediateDirectories:YES 
+                                         attributes:nil 
+                                              error:error];
+        if (! result)
+            return NO;
         NSURLRequest *request = [NSURLRequest requestWithURL:[photo url]];
         result = [NSURLDownload sendSynchoronousRequest:request 
-                                                 saveTo:filename error:error];
+                                                 saveTo:filename 
+                                                  error:error];
     }
     return result;
 }
@@ -204,8 +260,12 @@ static gid_t RRFSGid;
                     [result setType:RRFSPathTypePhotos];
                 }
                 else if ([fileName isEqualToString:RRFSPathNameLocalized]) {
-                    [result setOrigType:[result type]];
+                    [result setOrigType:RRFSPathTypeUser];
                     [result setType:RRFSPathTypeLocalize];
+                }
+                else if ([fileName isEqualToString:RRFSPathNameIcon]) {
+                    [result setOrigType:RRFSPathTypeUser];
+                    [result setType:RRFSPathTypeIcon];
                 }
                 else {
                     [result setType:RRFSPathTypeUnknown];
@@ -269,7 +329,7 @@ static gid_t RRFSGid;
                     }
                 }
                 else if ([fileName isEqualToString:RRFSPathNameLocalized]) {
-                    [result setOrigType:[result type]];
+                    [result setOrigType:RRFSPathTypeAlbum];
                     [result setType:RRFSPathTypeLocalize];
                 }
                 else {
@@ -295,6 +355,9 @@ static gid_t RRFSGid;
         if ([result type] == RRFSPathTypeUnknown)
             break;
     }
+    
+    // 是否为根目录
+    [result setIsRoot:[path isEqualToString:@"/"]];
     
     return result;
 }
@@ -327,6 +390,8 @@ static gid_t RRFSGid;
             if ([pathInfo object] == [_conn user])
                 [result addObject:RRFSPathNameFriends];
             [result addObject:RRFSPathNamePhotos];
+            if (! [pathInfo isRoot])
+                [result addObject:RRFSPathNameIcon];
             break;
         
         case RRFSPathTypeFriends:
@@ -368,7 +433,6 @@ static gid_t RRFSGid;
                                    error:(NSError *__autoreleasing *)error
 {
     RRFSPathParsingResult *pathInfo = [self parsePath:path];
-    NSLog(@"attr: %@ %d", path, [pathInfo type]);
     
     BOOL failed = NO;
     BOOL isDirectory;
@@ -463,7 +527,8 @@ static gid_t RRFSGid;
             referenceCount = 2;
             permission = 0555;
             break;
-        
+            
+        case RRFSPathTypeIcon:
         case RRFSPathTypeStrings:
             permission = 0444;
             
@@ -557,20 +622,25 @@ static gid_t RRFSGid;
 - (NSData *)readFileAtPath:(NSString *)path
 {
     RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    RRFSPathType type = [pathInfo type];
+    RRFSPathType origType = [pathInfo origType];
     NSData *data;
     
-    if ([pathInfo type] == RRFSPathTypeStrings) {
+    if (type == RRFSPathTypeStrings) {
         NSString *strings;
-        if ([pathInfo origType] == RRFSPathTypeUser) {
+        if (origType == RRFSPathTypeUser) {
             strings = [self localizedFileForUser:[pathInfo object]];
         }
-        else if ([pathInfo origType] == RRFSPathTypeAlbum) {
+        else if (origType == RRFSPathTypeAlbum) {
             strings = [self localizedFileForAlbum:[pathInfo object]];
         }
         else {
             strings = nil;
         }
         data = [strings dataUsingEncoding:NSUTF16StringEncoding];
+    }
+    else if (type == RRFSPathTypeIcon) {
+        data = [NSData dataWithBytes:"" length:0];
     }
     else {
         data = nil;
@@ -584,9 +654,10 @@ static gid_t RRFSGid;
                  error:(NSError *__autoreleasing *)error
 {
     RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    RRFSPathType type = [pathInfo type];
     BOOL result;
     
-    if ([pathInfo type] == RRFSPathTypePhoto) {
+    if (type == RRFSPathTypePhoto) {
         NSString *filename = [self pathOfPhoto:[pathInfo object]];
         int fd = open([filename UTF8String], mode);
         if (fd < 0) {
@@ -600,7 +671,7 @@ static gid_t RRFSGid;
             result = YES;
         }
     }
-    else if ([pathInfo type] == RRFSPathTypeStrings) {
+    else if (type == RRFSPathTypeStrings || type == RRFSPathTypeIcon) {
         *userData = [NSNumber numberWithInt:0];
         result = YES;
     }
@@ -649,6 +720,80 @@ static gid_t RRFSGid;
         }
         return (int)length;
     }
+}
+
+- (NSArray *)extendedAttributesOfItemAtPath:(id)path 
+                                      error:(NSError *__autoreleasing *)error
+{
+    // 如果不实现该过程，要求列出 xattr 时不会正确地输出数据
+    
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    RRFSPathType type = [pathInfo type];
+    NSArray *result;
+    
+    if (type == RRFSPathTypeUser && ! [pathInfo isRoot]) {
+        result = [NSArray arrayWithObject:@"com.apple.FinderInfo"];
+    }
+    else if (type == RRFSPathTypeIcon) {
+        result = [NSArray arrayWithObjects:
+                  @"com.apple.FinderInfo", 
+                  @"com.apple.ResourceFork", nil];
+    }
+    else {
+        result = [NSArray array];
+    }
+    
+    return result;
+}
+
+- (NSDictionary *)finderAttributesAtPath:(NSString *)path 
+                                   error:(NSError *__autoreleasing *)error
+{
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    RRFSPathType type = [pathInfo type];
+    long finderFlags = 0;
+    NSDictionary *result;
+    
+    if (type == RRFSPathTypeUser && ! [pathInfo isRoot])
+        finderFlags = kHasCustomIcon;
+    
+    if (finderFlags) {
+        result = [NSDictionary 
+                  dictionaryWithObject:[NSNumber numberWithLong:finderFlags] 
+                  forKey:kGMUserFileSystemFinderFlagsKey];
+    }
+    else {
+        result = [NSDictionary dictionary];
+    }
+    
+    return result;
+}
+
+- (NSDictionary *)resourceAttributesAtPath:(NSString *)path 
+                                     error:(NSError *__autoreleasing *)error
+{
+    RRFSPathParsingResult *pathInfo = [self parsePath:path];
+    RRFSPathType type = [pathInfo type];
+    NSDictionary *result;
+    
+    if (type == RRFSPathTypeUser && ! [pathInfo isRoot]) {
+        RRUser *user = [pathInfo object];
+        if ([self generateHeadOfUser:user error:error]) {
+            result = [NSDictionary 
+                      dictionaryWithObject:
+                      [NSData dataWithContentsOfFile:
+                       [self pathOfHeadOfUser:user]] 
+                      forKey:kGMUserFileSystemCustomIconDataKey];
+        }
+        else {
+            result = nil;
+        }
+    }
+    else {
+        result = [NSDictionary dictionary];
+    }
+    
+    return result;
 }
 
 @end
