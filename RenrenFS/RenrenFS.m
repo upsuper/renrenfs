@@ -83,6 +83,7 @@ static NSString * const RRFSPathSuffixLocalized = @".localized";
 static NSString *RRFSStringsName;
 static uid_t RRFSUid;
 static gid_t RRFSGid;
+static NSImage *RRFSIconUser;
 
 @interface NSString (NumberValueWithPrefix)
 
@@ -125,6 +126,10 @@ static gid_t RRFSGid;
     // 初始化当前用户和当前组
     RRFSUid = getuid();
     RRFSGid = getgid();
+    // 初始化图表模板
+    NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
+    RRFSIconUser = [workspace iconForFileType:
+                    NSFileTypeForHFSTypeCode(kWorkgroupFolderIcon)];
 }
 
 - (id)initWithConnection:(RRConnection *)conn cacheDir:(NSString *)cacheDir
@@ -165,9 +170,7 @@ static gid_t RRFSGid;
             return NO;
         // 根据头像图片生成图标
         const int kIconSize = 256;
-        NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
-        NSImage *folderIcon = [workspace iconForFileType:
-                               NSFileTypeForHFSTypeCode(kWorkgroupFolderIcon)];
+        NSImage *folderIcon = [RRFSIconUser copy];
         NSSize iconSize = NSMakeSize(kIconSize, kIconSize);
         [folderIcon setSize:iconSize];
         [folderIcon lockFocus];
