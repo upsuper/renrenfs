@@ -18,12 +18,14 @@
     NSNumber *_uid;
     RRUser *_user;
     NSSet *_friends;
+    NSSet *_visitors;
     
     NSMutableDictionary *_users;
     NSMutableDictionary *_albums;
     NSMutableDictionary *_photos;
     
     NSDate *_friendsLastUpdated;
+    NSDate *_visitorsLastUpdated;
 }
 
 @property (readonly) RRUser *user;
@@ -31,7 +33,9 @@
 - (id)initWithAccessToken:(NSString *)accessToken secret:(NSString *)secret;
 - (RRUser *)user:(NSNumber *)uid;
 - (RRUser *)user:(NSNumber *)uid forceUpdate:(BOOL)forceUpdate;
+- (void)updateUsers:(NSArray *)users;
 - (NSSet *)friends;
+- (NSSet *)visitors;
 - (RRAlbum *)album:(NSNumber *)aid;
 - (NSSet *)albumsOfUser:(RRUser *)user;
 - (RRPhoto *)photo:(NSNumber *)pid;

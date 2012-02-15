@@ -24,6 +24,7 @@ typedef enum {
     RRFSPathTypeUnknown = 0,
     RRFSPathTypeUser,
     RRFSPathTypeFriends,
+    RRFSPathTypeVisitors,
     RRFSPathTypePhotos,
     RRFSPathTypeAlbum,
     RRFSPathTypePhoto,
@@ -66,6 +67,7 @@ typedef enum {
 @end
 
 static NSString * const RRFSPathNameFriends = @"Friends";
+static NSString * const RRFSPathNameVisitors = @"Visitors";
 static NSString * const RRFSPathNamePhotos = @"Photos";
 static NSString * const RRFSPathNameUser = @"user_%@.localized";
 static NSString * const RRFSPathNameAlbum = @"album_%@.localized";
@@ -145,6 +147,10 @@ static NSImage *RRFSIconAlbum;
         _headsCacheDir = [_cacheDir stringByAppendingPathComponent:@"heads"];
         _coversCacheDir = [_cacheDir stringByAppendingPathComponent:@"covers"];
         _photosCacheDir = [_cacheDir stringByAppendingPathComponent:@"photos"];
+        
+        // 预加载好友和最近来访
+        [_conn friends];
+        [_conn visitors];
     }
     return self;
 }
@@ -320,6 +326,12 @@ static NSImage *RRFSIconAlbum;
                     else
                         [result setType:RRFSPathTypeUnknown];
                 }
+                else if ([fileName isEqualToString:RRFSPathNameVisitors]) {
+                    if ([result object] == [_conn user])
+                        [result setType:RRFSPathTypeVisitors];
+                    else
+                        [result setType:RRFSPathTypeUnknown];
+                }
                 else if ([fileName isEqualToString:RRFSPathNamePhotos]) {
                     [result setType:RRFSPathTypePhotos];
                 }
@@ -344,6 +356,26 @@ static NSImage *RRFSIconAlbum;
                     NSNumber *uid;
                     uid = [fileName numberByRemovingPrefix:RRFSPathPrefixUser];
                     if ([[_conn friends] containsObject:uid]) {
+                        [result setType:RRFSPathTypeUser];
+                        [result setObject:[_conn user:uid]];
+                    }
+                    else {
+                        [result setType:RRFSPathTypeUnknown];
+                    }
+                }
+                else {
+                    [result setType:RRFSPathTypeUnknown];
+                }
+                break;
+            
+            case RRFSPathTypeVisitors:
+                // 最近访问目录
+                // 断言：此目录只能存在与当前用户下
+                assert([result object] == [_conn user]);
+                if ([fileName hasPrefix:RRFSPathPrefixUser]) {
+                    NSNumber *uid;
+                    uid = [fileName numberByRemovingPrefix:RRFSPathPrefixUser];
+                    if ([[_conn visitors] containsObject:uid]) {
                         [result setType:RRFSPathTypeUser];
                         [result setObject:[_conn user:uid]];
                     }
@@ -455,8 +487,10 @@ static NSImage *RRFSIconAlbum;
     
     switch ([pathInfo type]) {
         case RRFSPathTypeUser:
-            if ([pathInfo object] == [_conn user])
+            if ([pathInfo object] == [_conn user]) {
                 [result addObject:RRFSPathNameFriends];
+                [result addObject:RRFSPathNameVisitors];
+            }
             [result addObject:RRFSPathNamePhotos];
             if (! [pathInfo isRoot])
                 [result addObject:RRFSPathNameIcon];
@@ -465,6 +499,13 @@ static NSImage *RRFSIconAlbum;
         case RRFSPathTypeFriends:
             for (NSNumber *uid in [_conn friends]) {
                 [result addObject:[NSString 
+                                   stringWithFormat:RRFSPathNameUser, uid]];
+            }
+            break;
+        
+        case RRFSPathTypeVisitors:
+            for (NSNumber *uid in [_conn visitors]) {
+                [result addObject:[NSString
                                    stringWithFormat:RRFSPathNameUser, uid]];
             }
             break;
@@ -527,13 +568,19 @@ static NSImage *RRFSIconAlbum;
         case RRFSPathTypeUser:
             isDirectory = YES;
             permission = 0555;
-            referenceCount = whosOwner == RRFSOwnerSelf ? 4 : 3;
+            referenceCount = whosOwner == RRFSOwnerSelf ? 5 : 3;
             break;
         
         case RRFSPathTypeFriends:
             isDirectory = YES;
             referenceCount = [[_conn friends] count] + 2;
             permission = 0755;
+            break;
+        
+        case RRFSPathTypeVisitors:
+            isDirectory = YES;
+            referenceCount = [[_conn visitors] count] + 2;
+            permission = 0555;
             break;
         
         case RRFSPathTypePhotos:

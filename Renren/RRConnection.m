@@ -119,6 +119,28 @@ static NSURL *RRApiUrl;
     return user;
 }
 
+- (void)updateUsers:(NSArray *)users
+{
+    NSString *uids = [users componentsJoinedByString:@","];
+    NSString *fields = [[NSArray arrayWithObjects:
+                         @"uid", @"name", @"sex", @"tinyurl", @"headurl", nil] 
+                        componentsJoinedByString:@","];
+    NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
+                            uids, @"uids", fields, @"fields", nil];
+    id data = [self requestAPI:@"users.getInfo" withParams:params];
+    for (NSDictionary *item in data) {
+        NSNumber *uid = [item valueForKey:@"uid"];
+        RRUser *user = [_users objectForKey:uid];
+        if (user) {
+            [user updateBaseInfoWithDictionary:item];
+        }
+        else {
+            user = [[RRUser alloc] initWithDictionary:item];
+            [_users setObject:user forKey:uid];
+        }
+    }
+}
+
 - (NSSet *)friends
 {
     NSSet *friends = _friends;
@@ -144,6 +166,32 @@ static NSURL *RRApiUrl;
         _friendsLastUpdated = [NSDate date];
     }
     return friends;
+}
+
+- (NSSet *)visitors
+{
+    NSSet *visitors = _visitors;
+    if (! visitors) {
+        NSDictionary *params = [NSDictionary 
+                                dictionaryWithObject:@"20" forKey:@"count"];
+        id data = [self requestAPI:@"users.getVisitors" withParams:params];
+        data = [data valueForKey:@"visitors"];
+        NSMutableSet *visitors_ = [NSMutableSet setWithCapacity:[data count]];
+        NSMutableArray *needUpdate = [NSMutableArray array];
+        for (NSDictionary *item in data) {
+            NSNumber *uid = [item valueForKey:@"uid"];
+            RRUser *user = [_users objectForKey:uid];
+            if (! user)
+                [needUpdate addObject:uid];
+            [visitors_ addObject:uid];
+        }
+        if ([needUpdate count] > 0)
+            [self updateUsers:needUpdate];
+        visitors = [NSSet setWithSet:visitors_];
+        _visitors = visitors;
+        _visitorsLastUpdated = [NSDate date];
+    }
+    return visitors;
 }
 
 - (RRAlbum *)album:(NSNumber *)aid
