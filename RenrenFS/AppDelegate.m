@@ -44,7 +44,8 @@ NSString * const RRFSSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
     NSString *callbackPath = [[NSURL URLWithString:RRCallbackURL] path];
     if ([[currentURL path] isEqualToString:callbackPath]) {
         NSString *fragment = [currentURL fragment];
-        NSDictionary *response = [NSDictionary dictionaryWithQueryString:fragment];
+        NSDictionary *response = [NSDictionary 
+                                  dictionaryWithQueryString:fragment];
         NSString *accessToken = [response valueForKey:@"access_token"];
         NSLog(@"scope: %@", [response valueForKey:@"scope"]);
         
@@ -72,19 +73,22 @@ NSString * const RRFSSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
     [center addObserver:self selector:@selector(didUnmount:) 
                    name:kGMUserFileSystemDidUnmount object:nil];
     
-    NSDictionary *authorizeQuery = [NSDictionary dictionaryWithObjectsAndKeys:
-                                    RRFSApiKey, @"client_id",
-                                    RRCallbackURL, @"redirect_uri",
-                                    @"token", @"response_type",
-                                    @"read_user_blog read_user_album read_user_photo", @"scope", 
-                                    nil];
+    NSDictionary *authorizeQuery = 
+        [NSDictionary dictionaryWithObjectsAndKeys:
+         RRFSApiKey, @"client_id",
+         RRCallbackURL, @"redirect_uri",
+         @"token", @"response_type",
+         @"read_user_album read_user_photo", @"scope", 
+         nil];
     NSString *authorizeURL = [NSString stringWithFormat:@"%@?%@", 
                               @"https://graph.renren.com/oauth/authorize",
                               [authorizeQuery buildQueryString]];
-    [[_webView mainFrame] loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:authorizeURL]]];
+    [[_webView mainFrame] loadRequest:[NSURLRequest requestWithURL:
+                                       [NSURL URLWithString:authorizeURL]]];
 }
 
-- (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender 
+- (NSApplicationTerminateReply)applicationShouldTerminate:
+        (NSApplication *)sender 
 {
     [_fs unmount];
     return NSTerminateNow;
