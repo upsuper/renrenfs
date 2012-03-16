@@ -25,7 +25,6 @@
 		0B1B568314D264DB0036857F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568114D264DB0036857F /* README.md */; };
 		0B417FDE14D675FB009D47A3 /* NSImage+IconData.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B417FDD14D675FB009D47A3 /* NSImage+IconData.m */; };
 		0B417FE114D68311009D47A3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B417FE014D68311009D47A3 /* Accelerate.framework */; };
-		0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B4FDF2A14D064BD00E89892 /* SBJson.framework */; };
 		0B7754A314D3AAE000ADFDEA /* RRConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B7754A214D3AAE000ADFDEA /* RRConnection.m */; };
 		0B7754AA14D3EE4300ADFDEA /* RRUser.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B7754A914D3EE4300ADFDEA /* RRUser.m */; };
 		0BC9E2E814D4DE8A000E2A9C /* RRAlbum.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BC9E2E714D4DE8A000E2A9C /* RRAlbum.m */; };
@@ -66,7 +65,6 @@
 		0B417FDC14D675FB009D47A3 /* NSImage+IconData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+IconData.h"; sourceTree = "<group>"; };
 		0B417FDD14D675FB009D47A3 /* NSImage+IconData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+IconData.m"; sourceTree = "<group>"; };
 		0B417FE014D68311009D47A3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		0B4FDF2A14D064BD00E89892 /* SBJson.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SBJson.framework; path = Library/Frameworks/SBJson.framework; sourceTree = SDKROOT; };
 		0B77549D14D3AA5900ADFDEA /* Renren.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Renren.h; path = ../Renren/Renren.h; sourceTree = "<group>"; };
 		0B7754A114D3AAE000ADFDEA /* RRConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RRConnection.h; path = Renren/RRConnection.h; sourceTree = SOURCE_ROOT; };
 		0B7754A214D3AAE000ADFDEA /* RRConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RRConnection.m; path = Renren/RRConnection.m; sourceTree = SOURCE_ROOT; };
@@ -86,7 +84,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				0B417FE114D68311009D47A3 /* Accelerate.framework in Frameworks */,
-				0B4FDF2B14D064BD00E89892 /* SBJson.framework in Frameworks */,
 				0B08E90314D028C000D17068 /* WebKit.framework in Frameworks */,
 				0B08E8F314CFE16D00D17068 /* OSXFUSE.framework in Frameworks */,
 				0B08E8D614CFE14B00D17068 /* Cocoa.framework in Frameworks */,
@@ -121,7 +118,6 @@
 			isa = PBXGroup;
 			children = (
 				0B417FE014D68311009D47A3 /* Accelerate.framework */,
-				0B4FDF2A14D064BD00E89892 /* SBJson.framework */,
 				0B08E90214D028C000D17068 /* WebKit.framework */,
 				0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */,
 				0B08E8D514CFE14B00D17068 /* Cocoa.framework */,
@@ -229,7 +225,7 @@
 		0B08E8C814CFE14B00D17068 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0430;
 			};
 			buildConfigurationList = 0B08E8CB14CFE14B00D17068 /* Build configuration list for PBXProject "RenrenFS" */;
 			compatibilityVersion = "Xcode 3.2";

@@ -7,7 +7,6 @@
 //
 
 #import "Renren.h"
-#import <SBJson/SBJson.h>
 #import "NSString+MD5.h"
 #import "NSDictionary+QueryBuilder.h"
 
@@ -86,7 +85,8 @@ static NSURL *RRApiUrl;
                                                         error:&error];
     
     // 解码数据并返回
-    id data = [rawData JSONValue];
+    id data = [NSJSONSerialization JSONObjectWithData:rawData 
+                                              options:0 error:nil];
     NSLog(@"Result: %@", data);
     return data;
 }
