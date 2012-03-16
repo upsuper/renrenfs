@@ -47,7 +47,8 @@ NSString * const RRFSSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
         NSDictionary *response = [NSDictionary 
                                   dictionaryWithQueryString:fragment];
         NSString *accessToken = [response valueForKey:@"access_token"];
-        NSLog(@"scope: %@", [response valueForKey:@"scope"]);
+        if (! accessToken)
+            [[NSApplication sharedApplication] terminate:nil];
         
         _conn = [[RRConnection alloc] initWithAccessToken:accessToken 
                                                    secret:RRFSSecretKey];
@@ -62,6 +63,15 @@ NSString * const RRFSSecretKey = @"e46c3a125106408fb02e08e02ffb398e";
          [NSString stringWithFormat:@"/Volumes/Renren_%@", [[_conn user] uid]] 
              withOptions:options];
     }
+}
+
+- (void)webView:(WebView *)sender
+        decidePolicyForNewWindowAction:(NSDictionary *)actionInformation 
+                               request:(NSURLRequest *)request
+                          newFrameName:(NSString *)frameName 
+                      decisionListener:(id<WebPolicyDecisionListener>)listener  
+{
+    [[NSWorkspace sharedWorkspace] openURL:[request URL]];
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
