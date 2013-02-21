@@ -13,7 +13,6 @@
 		0B08E8E614CFE14B00D17068 /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8E414CFE14B00D17068 /* Credits.rtf */; };
 		0B08E8E914CFE14B00D17068 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8E814CFE14B00D17068 /* AppDelegate.m */; };
 		0B08E8EC14CFE14B00D17068 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0B08E8EA14CFE14B00D17068 /* MainMenu.xib */; };
-		0B08E8F314CFE16D00D17068 /* OSXFUSE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */; };
 		0B08E8FE14CFE25C00D17068 /* RenrenFS.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B08E8FD14CFE25C00D17068 /* RenrenFS.m */; };
 		0B08E90314D028C000D17068 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B08E90214D028C000D17068 /* WebKit.framework */; };
 		0B1B566714D252770036857F /* NSDictionary+QueryBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B1B565E14D252770036857F /* NSDictionary+QueryBuilder.m */; };
@@ -23,6 +22,7 @@
 		0B1B566B14D252770036857F /* NSURLDownload+Synchronous.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B1B566614D252770036857F /* NSURLDownload+Synchronous.m */; };
 		0B1B568214D264DB0036857F /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568014D264DB0036857F /* LICENSE */; };
 		0B1B568314D264DB0036857F /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 0B1B568114D264DB0036857F /* README.md */; };
+		0B32D47C16D61B6400CAC6E1 /* OSXFUSE.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B32D47B16D61B6400CAC6E1 /* OSXFUSE.framework */; };
 		0B417FDE14D675FB009D47A3 /* NSImage+IconData.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B417FDD14D675FB009D47A3 /* NSImage+IconData.m */; };
 		0B417FE114D68311009D47A3 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0B417FE014D68311009D47A3 /* Accelerate.framework */; };
 		0B7754A314D3AAE000ADFDEA /* RRConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 0B7754A214D3AAE000ADFDEA /* RRConnection.m */; };
@@ -46,7 +46,6 @@
 		0B08E8E714CFE14B00D17068 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		0B08E8E814CFE14B00D17068 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		0B08E8EB14CFE14B00D17068 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSXFUSE.framework; path = Library/Frameworks/OSXFUSE.framework; sourceTree = SDKROOT; };
 		0B08E8FC14CFE25C00D17068 /* RenrenFS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenrenFS.h; sourceTree = "<group>"; };
 		0B08E8FD14CFE25C00D17068 /* RenrenFS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenrenFS.m; sourceTree = "<group>"; };
 		0B08E90214D028C000D17068 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
@@ -62,6 +61,7 @@
 		0B1B566614D252770036857F /* NSURLDownload+Synchronous.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURLDownload+Synchronous.m"; sourceTree = "<group>"; };
 		0B1B568014D264DB0036857F /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = SOURCE_ROOT; };
 		0B1B568114D264DB0036857F /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.md; sourceTree = SOURCE_ROOT; };
+		0B32D47B16D61B6400CAC6E1 /* OSXFUSE.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OSXFUSE.framework; path = /Library/Frameworks/OSXFUSE.framework; sourceTree = "<absolute>"; };
 		0B417FDC14D675FB009D47A3 /* NSImage+IconData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSImage+IconData.h"; sourceTree = "<group>"; };
 		0B417FDD14D675FB009D47A3 /* NSImage+IconData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSImage+IconData.m"; sourceTree = "<group>"; };
 		0B417FE014D68311009D47A3 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -85,8 +85,8 @@
 			files = (
 				0B417FE114D68311009D47A3 /* Accelerate.framework in Frameworks */,
 				0B08E90314D028C000D17068 /* WebKit.framework in Frameworks */,
-				0B08E8F314CFE16D00D17068 /* OSXFUSE.framework in Frameworks */,
 				0B08E8D614CFE14B00D17068 /* Cocoa.framework in Frameworks */,
+				0B32D47C16D61B6400CAC6E1 /* OSXFUSE.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,9 +117,9 @@
 		0B08E8D414CFE14B00D17068 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0B32D47B16D61B6400CAC6E1 /* OSXFUSE.framework */,
 				0B417FE014D68311009D47A3 /* Accelerate.framework */,
 				0B08E90214D028C000D17068 /* WebKit.framework */,
-				0B08E8F214CFE16D00D17068 /* OSXFUSE.framework */,
 				0B08E8D514CFE14B00D17068 /* Cocoa.framework */,
 				0B08E8D714CFE14B00D17068 /* Other Frameworks */,
 			);
@@ -225,7 +225,7 @@
 		0B08E8C814CFE14B00D17068 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0430;
+				LastUpgradeCheck = 0460;
 			};
 			buildConfigurationList = 0B08E8CB14CFE14B00D17068 /* Build configuration list for PBXProject "RenrenFS" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -317,7 +317,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
@@ -331,8 +336,9 @@
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = "";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -344,16 +350,23 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = "";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -361,8 +374,10 @@
 		0B08E8F014CFE14C00D17068 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RenrenFS/RenrenFS-Prefix.pch";
+				GCC_VERSION = "";
 				INFOPLIST_FILE = "RenrenFS/RenrenFS-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
@@ -372,8 +387,10 @@
 		0B08E8F114CFE14C00D17068 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "RenrenFS/RenrenFS-Prefix.pch";
+				GCC_VERSION = "";
 				INFOPLIST_FILE = "RenrenFS/RenrenFS-Info.plist";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
