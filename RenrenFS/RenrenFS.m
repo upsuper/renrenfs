@@ -11,7 +11,6 @@
 #import <sys/stat.h>
 #import "RenrenFS.h"
 #import <OSXFUSE/OSXFUSE.h>
-#import <SBJson/SBJson.h>
 #import "NSError+POSIX.h"
 #import "NSString+MD5.h"
 #import "NSDictionary+QueryBuilder.h"
